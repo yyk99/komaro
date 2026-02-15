@@ -1,0 +1,2 @@
+py nanoget.py
+pause
