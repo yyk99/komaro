@@ -1,6 +1,6 @@
 # KOMARO project
 
-A simple environmental sensor retrival project
+A simple environmental sensor retrieval project
 
 ## Software
 

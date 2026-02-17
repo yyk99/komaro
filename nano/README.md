@@ -1,4 +1,4 @@
-# nanoget
+# nanoget and other tools
 
 ## Unpacked message
 
@@ -33,4 +33,16 @@ Can be created
 
 To verify data after running the script:
 
-   influx -host localhost -database komaro -execute "SELECT * FROM sensor ORDER BY time DESC LIMIT 5"
+	influx -host localhost -database komaro -execute "SELECT * FROM sensor ORDER BY time DESC LIMIT 5"
+
+## Visualisation
+
+	# Plot T/H for the last 7 days
+	./plot_sensor.py localhost 7d
+
+	# Plot the entire dataset
+	./plot_sensor.py localhost all
+
+or use Python notebooks
+
+	python3 -m notebook

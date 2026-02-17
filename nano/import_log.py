@@ -2,7 +2,8 @@
 #
 # Import nanoget.log historical records into InfluxDB.
 #
-# Usage: import_log.py [--dry-run] <logfile> [influx_host]
+# Usage: import_log.py [--dry-run] <logfile | -> [influx_host]
+#   tail -10000 huge_log_file.log | import_log.py -
 #
 # Log format (from nanoget_snapshot2.py):
 #   <unix_timestamp> <serial> <accel_x> <accel_y> <accel_z> <temp_f> <temp_c> <humidity>
@@ -33,7 +34,8 @@ else:
 
 count = 0
 errors = 0
-with open(logfile) as f:
+f = sys.stdin if logfile == "-" else open(logfile)
+with f:
     for lineno, line in enumerate(f, 1):
         line = line.strip()
         if not line:

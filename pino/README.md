@@ -1,15 +1,15 @@
 # Pino sensor
 
-This is a DHT11 sensor presented with /dev/dht11 driver.
-The /dev/dht11 is connected to dht11_module
+This is a DHT11 sensor presented with a /dev/dht11 driver.
+The /dev/dht11 is connected to a dht11_module
 
-The example of /dev/dht11 input
+An example of /dev/dht11 input
 
 ```
 T: 18.50C H: 28.00%
 ```
 
-or in case of error
+or in case of an error
 
 ```
 Inconsistent data
