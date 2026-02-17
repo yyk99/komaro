@@ -6,7 +6,7 @@
 #   tail -10000 huge_log_file.log | import_log.py -
 #
 # Log format (from nanoget_snapshot2.py):
-#   <unix_timestamp> <serial> <accel_x> <accel_y> <accel_z> <temp_f> <temp_c> <humidity>
+#   <unix_timestamp> <serial> <accel_x> <accel_y> <accel_z> <humidity> <temp_c> <temp_f>
 
 import sys
 from influxdb import InfluxDBClient
@@ -55,9 +55,9 @@ with f:
                     "accel_x": int(parts[2]),
                     "accel_y": int(parts[3]),
                     "accel_z": int(parts[4]),
-                    "temperature_f": int(parts[5]) / 100.0,
+                    "humidity": int(parts[5]) / 100.0,
                     "temperature_c": int(parts[6]) / 100.0,
-                    "humidity": int(parts[7]) / 100.0,
+                    "temperature_f": int(parts[7]) / 100.0,
                 }
             }
             if not dry_run:

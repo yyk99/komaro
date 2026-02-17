@@ -21,9 +21,9 @@ The fields are:
 - x acceleration component (781)
 - y acceleration component (501)
 - z acceleration component (295)
-- ambient temperature multiplied by 100 in F (3900)
+- relative humidity multiplied by 100 in percent (3900)
 - ambient temperature multiplied by 100 in C (720)
-- relative humidity multiplied by 100 in percent (4496)
+- ambient temperature multiplied by 100 in F (4496)
 
 ## Database
 
