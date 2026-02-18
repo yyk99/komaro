@@ -11,7 +11,7 @@
 import sys
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from datetime import datetime
+from datetime import datetime, timezone
 from influxdb import InfluxDBClient
 
 INFLUX_PORT = 8086
@@ -49,7 +49,9 @@ def main(influx_host="localhost", time_range="7d", window=10, measurement="senso
         print("No data found.", file=sys.stderr)
         sys.exit(1)
 
-    times = [datetime.fromisoformat(p["time"].replace("Z", "+00:00")) for p in points]
+    local_tz = datetime.now().astimezone().tzinfo
+    times = [datetime.fromisoformat(p["time"].replace("Z", "+00:00")).astimezone(local_tz) for p in points]
+    tz_name = times[0].strftime("%Z")
     temps = [p["temperature_c"] for p in points]
     humids = [p["humidity"] for p in points]
 
@@ -71,7 +73,7 @@ def main(influx_host="localhost", time_range="7d", window=10, measurement="senso
 
     title = "Sensor data - all" if time_range == "all" else f"Sensor data - last {time_range}"
     ax_temp.set_title(title)
-    ax_temp.set_xlabel("Time")
+    ax_temp.set_xlabel(f"Time ({tz_name})")
     ax_temp.grid(True, alpha=0.3)
 
     ax_temp.xaxis.set_major_formatter(mdates.DateFormatter("%m-%d %H:%M"))

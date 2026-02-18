@@ -36,3 +36,20 @@ Reads `/dev/dht11` and publishes temperature and humidity via MQTT.
 MQTT topics published:
 - `<topic_prefix>/temperature` - temperature in Celsius
 - `<topic_prefix>/humidity` - relative humidity in percent
+- `<topic_prefix>/dht11` - combined, in InfluxDB line protocol format (e.g. `dht11 temperature_c=21.10,humidity=31.00`)
+
+## subscribe to topics
+
+```
+mosquitto_sub -h $MQTT_SERVER -t home/living_room/+ -v
+```
+
+Returns anything like:
+
+```
+home/living_room/temperature 21.10
+home/living_room/humidity 31.00
+home/living_room/temperature 21.00
+home/living_room/humidity 31.00
+...
+```

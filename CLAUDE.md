@@ -12,7 +12,7 @@ KOMARO is an environmental sensor data retrieval project. It communicates with a
 - `nano/nanoget_snapshot.py` - Simple snapshot script using hardcoded sensor IP
 - `nano/nanoget_snapshot2.py` - Snapshot script that accepts sensor IP as a CLI argument; intended to be run from cron every 5 minutes
 - `nano/nanoget.ipynb` - Jupyter notebook for interactive testing of `nanoget` module
-- `nano/plot_sensor.py` - Module to query InfluxDB and plot temperature/humidity with matplotlib; supports `all` time range
+- `nano/plot_sensor.py` - Module to query InfluxDB and plot temperature/humidity with matplotlib; supports `all` time range, moving average smoothing, and configurable measurement name
 - `nano/plot_sensor.ipynb` - Jupyter notebook for interactive use of `plot_sensor` module
 - `nano/import_log.py` - Backfill historical log records into InfluxDB; supports stdin via `-`
 - `nano/moisture.bat` - Windows batch file for quick testing

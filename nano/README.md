@@ -43,6 +43,9 @@ To verify data after running the script:
 	# Plot the entire dataset
 	./plot_sensor.py localhost all
 
+	# Plot with moving average window of 20 from a custom measurement
+	./plot_sensor.py localhost 7d 20 my_sensor
+
 or use Python notebooks
 
 	python3 -m notebook

@@ -9,6 +9,7 @@ TOPIC_PREFIX="${1:-home/living_room}"
 MQTT_HOST="${2:-localhost}"
 TOPIC_TEMP="$TOPIC_PREFIX/temperature"
 TOPIC_HUMID="$TOPIC_PREFIX/humidity"
+TOPIC_DHT11="$TOPIC_PREFIX/dht11"
 
 reading=$(cat /dev/dht11)
 
@@ -18,6 +19,7 @@ case "$reading" in
         humid=$(echo "$reading" | sed 's/.*H: \(.*\)%.*/\1/')
         mosquitto_pub -h "$MQTT_HOST" -t "$TOPIC_TEMP" -m "$temp"
         mosquitto_pub -h "$MQTT_HOST" -t "$TOPIC_HUMID" -m "$humid"
+        mosquitto_pub -h "$MQTT_HOST" -t "$TOPIC_DHT11" -m "dht11 temperature_c=$temp,humidity=$humid"
         echo "$reading"
         ;;
     *)
