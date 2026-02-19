@@ -49,9 +49,10 @@ def main(influx_host="localhost", time_range="7d", window=10, measurement="senso
         print("No data found.", file=sys.stderr)
         sys.exit(1)
 
-    local_tz = datetime.now().astimezone().tzinfo
-    times = [datetime.fromisoformat(p["time"].replace("Z", "+00:00")).astimezone(local_tz) for p in points]
-    tz_name = times[0].strftime("%Z")
+    local_tz = str(datetime.now().astimezone().tzinfo)
+    plt.rcParams['timezone'] = local_tz
+    times = [datetime.fromisoformat(p["time"]) for p in points]
+    tz_name = local_tz
     temps = [p["temperature_c"] for p in points]
     humids = [p["humidity"] for p in points]
 
@@ -71,7 +72,7 @@ def main(influx_host="localhost", time_range="7d", window=10, measurement="senso
     ax_humid.set_ylabel("Humidity (%)", color="blue")
     ax_humid.tick_params(axis="y", labelcolor="blue")
 
-    title = "Sensor data - all" if time_range == "all" else f"Sensor data - last {time_range}"
+    title = f"{measurement} data - all" if time_range == "all" else f"{measurement} data - last {time_range}"
     ax_temp.set_title(title)
     ax_temp.set_xlabel(f"Time ({tz_name})")
     ax_temp.grid(True, alpha=0.3)
