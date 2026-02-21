@@ -15,7 +15,7 @@ KOMARO is an environmental sensor data retrieval project. It communicates with a
 - `nano/plot_sensor.py` - Module to query InfluxDB and plot temperature/humidity with matplotlib; supports `all` time range, moving average smoothing, and configurable measurement name
 - `nano/plot_sensor.ipynb` - Jupyter notebook for interactive use of `plot_sensor` module
 - `nano/import_log.py` - Backfill historical log records into InfluxDB; supports stdin via `-`
-- `nano/nanoget2influx.py` - Read sensor and write to InfluxDB; supports configurable measurement name
+- `nano/nanoget2influx.py` - Read sensor and write to InfluxDB; supports configurable measurement name; skips records with NaN values (9999)
 - `nano/fix_swap_fields.py` - One-off script to swap humidity/temperature_f fields in InfluxDB
 - `nano/moisture.bat` - Windows batch file for quick testing
 - `pino/dht11_reader.sh` - Read DHT11 sensor from `/dev/dht11` and publish to MQTT (individual and combined topics)

@@ -16,7 +16,12 @@ INFLUX_PORT = 8086
 INFLUX_DB = "komaro"
 MEASUREMENT = "sensor"
 
+NAN_VALUE = 9999
+
 def write_record(client, record, measurement):
+    if record[4] == NAN_VALUE or record[5] == NAN_VALUE or record[6] == NAN_VALUE:
+        print("Skipping record with NaN value", file=sys.stderr)
+        return
     point = {
         "measurement": measurement,
         "fields": {
