@@ -80,6 +80,12 @@ def main(influx_host="localhost", time_range="7d", window=10, measurements=None)
     lines1, labels1 = ax_temp.get_legend_handles_labels()
     lines2, labels2 = ax_humid.get_legend_handles_labels()
     fig.legend(lines1 + lines2, labels1 + labels2, loc="upper right", bbox_to_anchor=(0.98, 0.95))
+    def format_coord(x, y):
+        temp = ax_temp.transData.inverted().transform(ax_humid.transData.transform((x, y)))[1]
+        return f"Temp: {temp:.1f}C / {temp * 9 / 5 + 32:.1f}F   Humid: {y:.1f}%"
+
+    ax_humid.format_coord = format_coord
+
     fig.autofmt_xdate()
     plt.tight_layout()
 
