@@ -11,6 +11,7 @@
 import sys
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.ticker as mticker
 from datetime import datetime
 from influxdb import InfluxDBClient
 from plot_sensor import moving_average
@@ -59,8 +60,11 @@ def main(influx_host="localhost", time_range="7d", window=10, measurements=None)
         ax_temp.plot(times, temps, linewidth=0.8, color="red", linestyle=ls, label=f"{measurement} - Temp")
         ax_humid.plot(times, humids, linewidth=0.8, color="blue", linestyle=ls, label=f"{measurement} - Humid")
 
-    ax_temp.set_ylabel("Temperature (C)", color="red")
+    ax_temp.set_ylabel("Temperature (C / F)", color="red")
     ax_temp.tick_params(axis="y", labelcolor="red")
+    ax_temp.yaxis.set_major_formatter(mticker.FuncFormatter(
+        lambda c, _: f"{c:.0f}C / {c * 9 / 5 + 32:.0f}F"))
+
     ax_humid.set_ylabel("Humidity (%)", color="blue")
     ax_humid.tick_params(axis="y", labelcolor="blue")
 
