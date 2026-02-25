@@ -8,7 +8,9 @@
 #   window:        moving average window size (default: 10)
 #   measurements:  comma-delimited list of measurement names (default: sensor)
 
+import os
 import sys
+import tempfile
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.ticker as mticker
@@ -81,10 +83,11 @@ def main(influx_host="localhost", time_range="7d", window=10, measurements=None)
     fig.autofmt_xdate()
     plt.tight_layout()
 
-    outfile = "multi_sensor_plot.png"
-    plt.savefig(outfile, dpi=150)
-    print(f"Saved {outfile}")
-    plt.show()
+    with tempfile.TemporaryDirectory() as tmpdir:
+        outfile = os.path.join(tmpdir, "multi_sensor_plot.png")
+        plt.savefig(outfile, dpi=150)
+        print(f"Saved {outfile}")
+        plt.show()
 
 
 if __name__ == "__main__":
