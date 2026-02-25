@@ -8,9 +8,12 @@
 #   window:       moving average window size (default: 10)
 #   measurement:  InfluxDB measurement name (default: sensor)
 
+import os
 import sys
+import tempfile
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.ticker as mticker
 from datetime import datetime, timezone
 from influxdb import InfluxDBClient
 
@@ -64,8 +67,10 @@ def main(influx_host="localhost", time_range="7d", window=10, measurement="senso
     humids = moving_average(humids, window)
 
     ax_temp.plot(times, temps, linewidth=0.8, color="red", label="Temperature (C)")
-    ax_temp.set_ylabel("Temperature (C)", color="red")
+    ax_temp.set_ylabel("Temperature (C / F)", color="red")
     ax_temp.tick_params(axis="y", labelcolor="red")
+    ax_temp.yaxis.set_major_formatter(mticker.FuncFormatter(
+        lambda c, _: f"{c:.0f}C / {c * 9 / 5 + 32:.0f}F"))
 
     ax_humid = ax_temp.twinx()
     ax_humid.plot(times, humids, linewidth=0.8, color="blue", label="Humidity (%)")
@@ -82,10 +87,11 @@ def main(influx_host="localhost", time_range="7d", window=10, measurement="senso
     fig.autofmt_xdate()
     plt.tight_layout()
 
-    outfile = f"{measurement}_plot.png"
-    plt.savefig(outfile, dpi=150)
-    print(f"Saved {outfile}")
-    plt.show()
+    with tempfile.TemporaryDirectory() as tmpdir:
+        outfile = os.path.join(tmpdir, f"{measurement}_plot.png")
+        plt.savefig(outfile, dpi=150)
+        print(f"Saved {outfile}")
+        plt.show()
 
 
 if __name__ == "__main__":
