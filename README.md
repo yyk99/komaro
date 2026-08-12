@@ -37,6 +37,19 @@ data b"{\xe8\xd2\x0b\r\x03\x00\x00\xf5\x01\x00\x00'\x01\x00\x00<\x0f\x00\x00\xd0
 (198371451, 781, 501, 295, 3900, 720, 4496)
 ```
 
+## Windows
+
+The `nano/` plotting and query scripts (`plot_sensor.py`, `plot_multi_sensor.py`, `import_log.py`, `nanoget2influx.py`, etc.) also run on Windows against a remote InfluxDB host. Set up a virtual environment and install dependencies from `requirements.txt`:
+
+    py -m venv .venv
+    .venv\Scripts\python.exe -m pip install -r requirements.txt
+
+Then run scripts with the venv's interpreter, e.g.:
+
+    .venv\Scripts\python.exe nano\plot_sensor.py silvana.home
+
+Note: on Python versions before 3.11, `datetime.fromisoformat()` cannot parse the `Z`-suffixed UTC timestamps InfluxDB returns (e.g. `2026-08-05T19:05:03.476179Z`). The scripts work around this by replacing `Z` with `+00:00` before parsing, so any Python 3.7+ interpreter works on both Windows and Linux.
+
 ## Grafana (optional)
 
 Grafana isn't in the default Debian/Raspberry Pi OS repos. You need to add their repository first:

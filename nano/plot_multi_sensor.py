@@ -53,7 +53,7 @@ def main(influx_host="localhost", time_range="7d", window=10, measurements=None)
             print(f"Warning: no data for {measurement}", file=sys.stderr)
             continue
 
-        times = [datetime.fromisoformat(p["time"]) for p in points]
+        times = [datetime.fromisoformat(p["time"].replace("Z", "+00:00")) for p in points]
         temps = moving_average([p["temperature_c"] for p in points], window)
         humids = moving_average([p["humidity"] for p in points], window)
 
