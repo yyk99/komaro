@@ -54,7 +54,7 @@ def main(influx_host="localhost", time_range="7d", window=10, measurement="senso
 
     local_tz = str(datetime.now().astimezone().tzinfo)
     plt.rcParams['timezone'] = local_tz
-    times = [datetime.fromisoformat(p["time"]) for p in points]
+    times = [datetime.fromisoformat(p["time"].replace("Z", "+00:00")) for p in points]
     tz_name = local_tz
     temps = [p["temperature_c"] for p in points]
     humids = [p["humidity"] for p in points]

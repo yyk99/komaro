@@ -33,6 +33,18 @@ python3 nano/nanoget.py
 python3 nano/nanoget_snapshot2.py 192.168.68.67
 ```
 
+### Windows
+
+The `nano/` scripts also run on Windows (tested against a remote InfluxDB host, no local mosquitto/InfluxDB/Telegraf install needed for the query/plot scripts). Use a venv and `requirements.txt`:
+
+```
+py -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe nano\plot_sensor.py silvana.home
+```
+
+`datetime.fromisoformat()` only accepts the `Z` UTC suffix InfluxDB emits on Python 3.11+; earlier versions (e.g. the 3.9 commonly found on Windows) raise `ValueError: Invalid isoformat string`. `plot_sensor.py` and `plot_multi_sensor.py` work around this by replacing `Z` with `+00:00` before parsing — keep that pattern when adding new timestamp parsing code so scripts stay portable across Python versions and OSes.
+
 ## Infrastructure
 
 The project uses mosquitto (MQTT), InfluxDB, and Telegraf for the data pipeline. See README.md for install instructions.
