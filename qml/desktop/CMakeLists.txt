@@ -14,6 +14,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
+# So qt_add_qml_module in subdirectories (e.g. ../core) places its modules
+# directly under the top-level build dir, matching where qmlimportscanner's
+# default -importPath looks; otherwise a subdirectory's own module would
+# land one level too deep under its own CMAKE_CURRENT_BINARY_DIR and never
+# be found.
+set(QT_QML_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
 option(BUILD_TESTS "Build unit tests" ON)
 
 if(BUILD_TESTS)
@@ -40,11 +47,14 @@ set_target_properties(komaro_qml_desktop PROPERTIES
 
 target_link_libraries(komaro_qml_desktop PRIVATE
     komaro_core
+    komaro_core_qml
     Qt6::Core
     Qt6::Gui
     Qt6::Qml
     Qt6::Quick
 )
+
+qt_import_qml_plugins(komaro_qml_desktop)
 
 get_target_property(_qt6_qmake_executable Qt6::qmake IMPORTED_LOCATION)
 get_filename_component(_qt6_bin_dir "${_qt6_qmake_executable}" DIRECTORY)

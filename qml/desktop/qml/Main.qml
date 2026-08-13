@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import KomaroCore
 
 ApplicationWindow {
     id: window
@@ -9,25 +10,22 @@ ApplicationWindow {
     visible: true
     title: qsTr("Komaro Sensor Viewer")
 
+    AppActions {
+        id: appActions
+        onConnectRequested: connectDialog.open()
+        onAboutRequested: aboutDialog.open()
+    }
+
     menuBar: MenuBar {
         Menu {
             title: qsTr("&File")
-            MenuItem {
-                text: qsTr("&Connect...")
-                onTriggered: connectDialog.open()
-            }
+            MenuItem { action: appActions.connectAction }
             MenuSeparator {}
-            MenuItem {
-                text: qsTr("E&xit")
-                onTriggered: Qt.quit()
-            }
+            MenuItem { action: appActions.exitAction }
         }
         Menu {
             title: qsTr("&Help")
-            MenuItem {
-                text: qsTr("&About")
-                onTriggered: aboutDialog.open()
-            }
+            MenuItem { action: appActions.aboutAction }
         }
     }
 
