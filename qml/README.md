@@ -4,7 +4,7 @@ A QML app to display temperature/humidity plots from InfluxDB, targeting desktop
 
 ## Status
 
-Desktop skeleton in `desktop/`: a Qt Quick `ApplicationWindow` with `File`/`Help` menus and a placeholder plot area filling the space below the menu bar. No InfluxDB querying or charting wired up yet. Android target not started.
+Desktop skeleton in `desktop/`: a Qt Quick `ApplicationWindow` with `File`/`Help` menus and a placeholder plot area filling the space below the menu bar. `desktop` links against `core/` (see `core/README.md`), which has an InfluxDB query client and response parser with unit tests, but it isn't wired into the plot area or any charting yet. Android target not started.
 
 ## Backend
 
@@ -12,12 +12,15 @@ Starting with a C++ backend (native Qt Quick app, CMake + Qt for Android). Other
 
 ## Desktop build
 
-Qt 6.8.3 (LTS) is installed directly at `E:\qt6\6.8.3\msvc2022_64` and used via `CMAKE_PREFIX_PATH`. Using the CMake bundled with Visual Studio 2022 and the `windows-msvc` preset in `desktop/CMakePresets.json`:
+Qt 6.8.3 (LTS) is installed directly at `E:\qt6\6.8.3\msvc2022_64` and used via `CMAKE_PREFIX_PATH`. `desktop/CMakeLists.txt` pulls in `../core` via `add_subdirectory` and links it into the app. Using the CMake bundled with Visual Studio 2022 and the `windows-msvc` preset in `desktop/CMakePresets.json`:
 
 ```
 cd qml/desktop
 cmake --preset windows-msvc
 cmake --build --preset windows-msvc-debug
+ctest --preset windows-msvc-debug
 ```
 
-`desktop/vcpkg.json` (against the vcpkg instance at `G:\opt\vcpkg`) is kept for any non-Qt dependencies added later; it isn't wired into the presets above, so Qt itself is not built from source via vcpkg.
+Executables land in `build/windows-msvc/bin/<Config>/`, libraries in `build/windows-msvc/lib/<Config>/`. After a successful build, `windeployqt` runs automatically as a post-build step, so `komaro_qml_desktop.exe` is self-contained (no manual PATH/deploy step needed).
+
+`desktop/vcpkg.json` (against the vcpkg instance at `G:\opt\vcpkg`) currently only pulls in `gtest`, needed to build `core`'s tests as part of this project; it isn't wired into `CMAKE_PREFIX_PATH`, so Qt itself is not built from source via vcpkg. Tests are gated by the `BUILD_TESTS` cache variable (default `ON`); pass `-DBUILD_TESTS=OFF` to skip them.
