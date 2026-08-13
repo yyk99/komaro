@@ -4,7 +4,9 @@ A QML app to display temperature/humidity plots from InfluxDB, targeting desktop
 
 ## Status
 
-Desktop skeleton in `desktop/`: a Qt Quick `ApplicationWindow` with `File`/`Help` menus and a placeholder plot area filling the space below the menu bar. The app's actions (Connect, About, Exit) live in `core/qml/AppActions.qml` (the `KomaroCore` QML module) rather than being hardcoded in `desktop/qml/Main.qml`, so `Main.qml` is just a "thin shell" that arranges those shared actions into a `MenuBar` — a future mobile shell would arrange the same actions into e.g. a `Drawer`/`ToolBar` instead. `desktop` also links against `core/`'s InfluxDB query client and response parser (unit-tested), but that isn't wired into the plot area yet. Android target not started.
+Desktop skeleton in `desktop/`: a Qt Quick `ApplicationWindow` with `File`/`Help` menus and a placeholder plot area filling the space below the menu bar. The app's actions (Connect, About, Exit) live in `core/qml/AppActions.qml` (the `KomaroCore` QML module) rather than being hardcoded in `desktop/qml/Main.qml`, so `Main.qml` is just a "thin shell" that arranges those shared actions into a `MenuBar`. `desktop` also links against `core/`'s InfluxDB query client and response parser (unit-tested), but that isn't wired into the plot area yet.
+
+`mobile/` is the second shell for that same shared `AppActions`: a `ToolBar`+`Drawer` (Material Dark) presentation instead of a `MenuBar`, currently built for desktop only as a quick way to iterate on the mobile UI without an Android toolchain — see `mobile/README.md` and `TODO.md`.
 
 ## Backend
 
