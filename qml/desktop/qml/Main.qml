@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 
 ApplicationWindow {
     id: window
@@ -11,6 +12,11 @@ ApplicationWindow {
     menuBar: MenuBar {
         Menu {
             title: qsTr("&File")
+            MenuItem {
+                text: qsTr("&Connect...")
+                onTriggered: connectDialog.open()
+            }
+            MenuSeparator {}
             MenuItem {
                 text: qsTr("E&xit")
                 onTriggered: Qt.quit()
@@ -47,6 +53,27 @@ ApplicationWindow {
 
         Label {
             text: qsTr("Komaro Sensor Viewer\nDesktop QML app")
+        }
+    }
+
+    Dialog {
+        id: connectDialog
+        title: qsTr("Connect")
+        anchors.centerIn: parent
+        modal: true
+        standardButtons: Dialog.Ok | Dialog.Cancel
+
+        ColumnLayout {
+            spacing: 8
+
+            Label {
+                text: qsTr("InfluxDB host")
+            }
+            TextField {
+                id: hostField
+                Layout.preferredWidth: 240
+                placeholderText: qsTr("e.g. silvana.home")
+            }
         }
     }
 }
