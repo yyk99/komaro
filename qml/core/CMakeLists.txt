@@ -63,14 +63,15 @@ if(BUILD_TESTS)
     find_package(GTest CONFIG REQUIRED)
 
     add_executable(komaro_core_tests
+        tests/main.cpp
         tests/InfluxResponseParserTest.cpp
         tests/RecentServersTest.cpp
+        tests/InfluxDbClientTest.cpp
     )
 
     target_link_libraries(komaro_core_tests PRIVATE
         komaro_core
         GTest::gtest
-        GTest::gtest_main
     )
 
     add_test(NAME komaro_core_tests COMMAND komaro_core_tests)

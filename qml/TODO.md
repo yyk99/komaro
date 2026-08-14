@@ -3,7 +3,7 @@
 ## Data / backend
 
 - [x] Wire the Connect dialog's host field to `InfluxDbClient`, with a recent-server history (`ConnectionManager`, persisted via `QSettings`)
-- [ ] Add unit/integration coverage for `InfluxDbClient` itself (only `InfluxResponseParser`/`RecentServers` are tested so far; the network path is unverified)
+- [x] Add unit/integration coverage for `InfluxDbClient` itself (query building, plus a `QTcpServer`-backed fake HTTP server exercising the real success/InfluxDB-error/connection-refused paths)
 - [ ] `ConnectionManager`'s "connect" is just a one-shot `SELECT ... FROM sensor WHERE time > now() - 1h` used as a connectivity probe; revisit once real querying/measurement selection exists
 
 ## Plotting
