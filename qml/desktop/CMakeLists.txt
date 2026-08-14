@@ -63,6 +63,7 @@ find_program(WINDEPLOYQT_EXECUTABLE windeployqt PATHS "${_qt6_bin_dir}" NO_DEFAU
 if(WINDEPLOYQT_EXECUTABLE)
     add_custom_command(TARGET komaro_qml_desktop POST_BUILD
         COMMAND "${WINDEPLOYQT_EXECUTABLE}"
+                --verbose 0
                 --qmldir "${CMAKE_CURRENT_SOURCE_DIR}/qml"
                 "$<TARGET_FILE:komaro_qml_desktop>"
         COMMENT "Deploying Qt runtime dependencies for komaro_qml_desktop"
