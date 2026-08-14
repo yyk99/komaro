@@ -21,9 +21,9 @@ QStringList ConnectionManager::recentServers() const
     return m_recentServers;
 }
 
-QString ConnectionManager::status() const
+QString ConnectionManager::currentHost() const
 {
-    return m_status;
+    return m_currentHost;
 }
 
 void ConnectionManager::connectToServer(const QString &host)
@@ -37,29 +37,10 @@ void ConnectionManager::connectToServer(const QString &host)
     saveRecentServers();
     emit recentServersChanged();
 
-    setStatus(tr("Connecting to %1...").arg(trimmed));
-
-    delete m_client;
-    m_client = new InfluxDbClient(trimmed, 8086, QStringLiteral("komaro"), this);
-
-    connect(m_client, &InfluxDbClient::succeeded, this,
-            [this, trimmed](const std::vector<SensorPoint> &points) {
-                setStatus(tr("Connected to %1 (%2 points)").arg(trimmed).arg(points.size()));
-            });
-    connect(m_client, &InfluxDbClient::failed, this, [this](const QString &errorMessage) {
-        setStatus(tr("Error: %1").arg(errorMessage));
-    });
-
-    m_client->query(InfluxDbClient::buildSelectQuery(QStringLiteral("sensor"), QStringLiteral("1h")));
-}
-
-void ConnectionManager::setStatus(const QString &status)
-{
-    if (m_status == status) {
-        return;
+    if (m_currentHost != trimmed) {
+        m_currentHost = trimmed;
+        emit currentHostChanged();
     }
-    m_status = status;
-    emit statusChanged();
 }
 
 void ConnectionManager::loadRecentServers()

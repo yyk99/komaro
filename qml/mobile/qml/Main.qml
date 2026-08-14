@@ -74,25 +74,80 @@ ApplicationWindow {
         }
     }
 
-    Rectangle {
-        id: plotArea
-        anchors.fill: parent
-        color: "#1e1e1e"
+    function reloadChart() {
+        if (connectionManager.currentHost.length > 0) {
+            chartController.load(connectionManager.currentHost, measurementField.text,
+                                  timeRangeCombo.currentText, windowSpin.value)
+        }
+    }
 
-        Text {
-            anchors.centerIn: parent
-            text: qsTr("Plot area")
-            color: "white"
-            font.pixelSize: 20
+    ColumnLayout {
+        anchors.fill: parent
+        spacing: 0
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.margins: 8
+            spacing: 8
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                Label { text: qsTr("Measurement:") }
+                TextField {
+                    id: measurementField
+                    text: "sensor"
+                    Layout.fillWidth: true
+                    onEditingFinished: reloadChart()
+                }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                ComboBox {
+                    id: timeRangeCombo
+                    Layout.fillWidth: true
+                    model: ["1h", "6h", "24h", "7d", "30d", "all"]
+                    currentIndex: 3
+                    onActivated: reloadChart()
+                }
+                SpinBox {
+                    id: windowSpin
+                    from: 1
+                    to: 200
+                    value: 10
+                    onValueModified: reloadChart()
+                }
+                Button {
+                    text: qsTr("Refresh")
+                    enabled: connectionManager.currentHost.length > 0
+                    onClicked: reloadChart()
+                }
+            }
         }
 
-        Label {
-            anchors.left: parent.left
-            anchors.bottom: parent.bottom
-            anchors.margins: 8
-            text: connectionManager.status
-            color: "white"
-            visible: text.length > 0
+        Rectangle {
+            id: plotArea
+            color: "#1e1e1e"
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+
+            SensorChart {
+                anchors.fill: parent
+                anchors.margins: 8
+                points: chartController.points
+            }
+
+            Label {
+                anchors.left: parent.left
+                anchors.bottom: parent.bottom
+                anchors.margins: 8
+                text: chartController.status
+                color: "white"
+                visible: text.length > 0
+            }
         }
     }
 
@@ -120,7 +175,10 @@ ApplicationWindow {
                 hostCombo.editText = connectionManager.recentServers[0]
             }
         }
-        onAccepted: connectionManager.connectToServer(hostCombo.editText)
+        onAccepted: {
+            connectionManager.connectToServer(hostCombo.editText)
+            reloadChart()
+        }
 
         ColumnLayout {
             spacing: 8

@@ -2,6 +2,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 
+#include "komaro/core/ChartController.h"
 #include "komaro/core/ConnectionManager.h"
 
 int main(int argc, char *argv[])
@@ -16,6 +17,9 @@ int main(int argc, char *argv[])
 
     auto *connectionManager = new komaro::core::ConnectionManager(&app);
     engine.rootContext()->setContextProperty("connectionManager", connectionManager);
+
+    auto *chartController = new komaro::core::ChartController(&app);
+    engine.rootContext()->setContextProperty("chartController", chartController);
 
     engine.loadFromModule("KomaroDesktop", "Main");
 

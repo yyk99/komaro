@@ -22,11 +22,15 @@ add_library(komaro_core STATIC
     include/komaro/core/InfluxDbClient.h
     include/komaro/core/RecentServers.h
     include/komaro/core/ConnectionManager.h
+    include/komaro/core/ChartController.h
+    include/komaro/core/MovingAverage.h
     include/komaro/core/SensorPoint.h
     src/InfluxResponseParser.cpp
     src/InfluxDbClient.cpp
     src/RecentServers.cpp
     src/ConnectionManager.cpp
+    src/ChartController.cpp
+    src/MovingAverage.cpp
 )
 
 target_include_directories(komaro_core PUBLIC
@@ -50,6 +54,7 @@ qt_add_qml_module(komaro_core_qml
     RESOURCE_PREFIX /qt/qml
     QML_FILES
         qml/AppActions.qml
+        qml/SensorChart.qml
 )
 
 target_link_libraries(komaro_core_qml PUBLIC
@@ -67,6 +72,8 @@ if(BUILD_TESTS)
         tests/InfluxResponseParserTest.cpp
         tests/RecentServersTest.cpp
         tests/InfluxDbClientTest.cpp
+        tests/MovingAverageTest.cpp
+        tests/ChartControllerTest.cpp
     )
 
     target_link_libraries(komaro_core_tests PRIVATE
