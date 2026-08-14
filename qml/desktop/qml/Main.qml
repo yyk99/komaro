@@ -40,6 +40,15 @@ ApplicationWindow {
             color: "white"
             font.pixelSize: 20
         }
+
+        Label {
+            anchors.left: parent.left
+            anchors.bottom: parent.bottom
+            anchors.margins: 8
+            text: connectionManager.status
+            color: "white"
+            visible: text.length > 0
+        }
     }
 
     Dialog {
@@ -61,16 +70,24 @@ ApplicationWindow {
         modal: true
         standardButtons: Dialog.Ok | Dialog.Cancel
 
+        onAboutToShow: {
+            if (hostCombo.editText.length === 0 && connectionManager.recentServers.length > 0) {
+                hostCombo.editText = connectionManager.recentServers[0]
+            }
+        }
+        onAccepted: connectionManager.connectToServer(hostCombo.editText)
+
         ColumnLayout {
             spacing: 8
 
             Label {
                 text: qsTr("InfluxDB host")
             }
-            TextField {
-                id: hostField
+            ComboBox {
+                id: hostCombo
                 Layout.preferredWidth: 240
-                placeholderText: qsTr("e.g. silvana.home")
+                editable: true
+                model: connectionManager.recentServers
             }
         }
     }

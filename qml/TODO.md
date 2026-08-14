@@ -2,9 +2,9 @@
 
 ## Data / backend
 
-- [ ] Wire the Connect dialog's host field to `InfluxDbClient` (currently UI-only, doesn't do anything with the entered host)
-- [ ] Persist the last-used InfluxDB host across app restarts
-- [ ] Add unit/integration coverage for `InfluxDbClient` itself (only `InfluxResponseParser` is tested so far; the network path is unverified)
+- [x] Wire the Connect dialog's host field to `InfluxDbClient`, with a recent-server history (`ConnectionManager`, persisted via `QSettings`)
+- [ ] Add unit/integration coverage for `InfluxDbClient` itself (only `InfluxResponseParser`/`RecentServers` are tested so far; the network path is unverified)
+- [ ] `ConnectionManager`'s "connect" is just a one-shot `SELECT ... FROM sensor WHERE time > now() - 1h` used as a connectivity probe; revisit once real querying/measurement selection exists
 
 ## Plotting
 

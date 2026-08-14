@@ -12,9 +12,21 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
+# Q_OBJECT headers are listed explicitly (not just their .cpp files): AUTOMOC's
+# transitive-include scanning silently found nothing to moc for this target
+# when the headers were only reachable via #include, leaving InfluxDbClient
+# and ConnectionManager's signals/metaobject undefined at link time. Explicit
+# listing forces AUTOMOC to scan them directly.
 add_library(komaro_core STATIC
+    include/komaro/core/InfluxResponseParser.h
+    include/komaro/core/InfluxDbClient.h
+    include/komaro/core/RecentServers.h
+    include/komaro/core/ConnectionManager.h
+    include/komaro/core/SensorPoint.h
     src/InfluxResponseParser.cpp
     src/InfluxDbClient.cpp
+    src/RecentServers.cpp
+    src/ConnectionManager.cpp
 )
 
 target_include_directories(komaro_core PUBLIC
@@ -52,6 +64,7 @@ if(BUILD_TESTS)
 
     add_executable(komaro_core_tests
         tests/InfluxResponseParserTest.cpp
+        tests/RecentServersTest.cpp
     )
 
     target_link_libraries(komaro_core_tests PRIVATE

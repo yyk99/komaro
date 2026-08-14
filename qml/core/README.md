@@ -2,15 +2,20 @@
 
 Two CMake targets shared by the desktop and mobile apps:
 
-- `komaro_core` — a static C++ library (Qt6 Core + Network) with the InfluxDB querying logic.
+- `komaro_core` — a static C++ library (Qt6 Core + Network) with the InfluxDB querying logic and app state.
   - `InfluxResponseParser` — parses an InfluxDB `/query` JSON response into `SensorPoint` values (time, temperature_c, humidity). Pure/synchronous, no network or event loop involved, so it's unit-tested directly.
   - `InfluxDbClient` — async client (`QNetworkAccessManager`) that issues an InfluxQL `SELECT` query against InfluxDB's HTTP `/query` endpoint and reports results via `succeeded`/`failed` signals, using `InfluxResponseParser` internally.
   - `SensorPoint` — plain struct: `QDateTime time`, `double temperatureC`, `double humidity`.
-- `komaro_core_qml` — a QML module (URI `KomaroCore`) with UI pieces shared between platform-specific "shells". Currently just `AppActions.qml`: a `QtObject` exposing the app's actions (Connect, About, Exit) as `Action` items, so each shell (desktop's `MenuBar`, a future mobile `Drawer`/`ToolBar`) can present the same actions in whatever form suits that platform, instead of duplicating the logic. See `../desktop/qml/Main.qml` for how it's consumed.
+  - `RecentServers` — pure list-management logic (dedupe, cap, move-to-front) for a most-recently-used server list; unit-tested directly.
+  - `ConnectionManager` — QML-facing (via `QQmlContext::setContextProperty`, registered as `connectionManager` in each app's `main.cpp`) wrapper that persists the recent-server list (`QSettings`) and drives an `InfluxDbClient` to test connectivity on Connect, exposing `recentServers` and `status` properties.
+- `komaro_core_qml` — a QML module (URI `KomaroCore`) with UI pieces shared between platform-specific "shells". Currently just `AppActions.qml`: a `QtObject` exposing the app's actions (Connect, About, Exit) as `Action` items, so each shell (desktop's `MenuBar`, mobile's `Drawer`/`ToolBar`) can present the same actions in whatever form suits that platform, instead of duplicating the logic. See `../desktop/qml/Main.qml` for how it's consumed.
 
-Not yet wired into the desktop UI/plot area (InfluxDB querying, that is — `AppActions` is already used by desktop's menu bar).
+Not yet wired into the plot area — Connect now does a real connectivity check, but there's no chart yet.
 
-Note: `komaro_core_qml` is deliberately a separate target from `komaro_core` — attaching `qt_add_qml_module` to an already-existing library target doesn't reliably propagate the generated plugin into consumers, so the QML module gets its own fresh target instead.
+Notes on a couple of non-obvious build quirks (both cost real debugging time, worth knowing if you touch this again):
+- `komaro_core_qml` is deliberately a separate target from `komaro_core` — attaching `qt_add_qml_module` to an already-existing library target doesn't reliably propagate the generated plugin into consumers, so the QML module gets its own fresh target instead.
+- `ConnectionManager` is exposed via a context property, not `QML_ELEMENT` — a C++ QML-registered type inside `komaro_core_qml` hit further static-plugin-registration gaps (the generated `_init` object library doesn't reliably propagate either) that weren't worth chasing further for a type that only ever needs one instance per app anyway.
+- `komaro_core`'s Q_OBJECT headers (`InfluxDbClient.h`, `ConnectionManager.h`, etc.) are listed explicitly in `add_library()`, not just their `.cpp` files — AUTOMOC's transitive-include scanning silently found nothing to moc without that, leaving their signals/metaobject undefined at link time.
 
 ## Build & test
 
