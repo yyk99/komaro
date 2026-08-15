@@ -49,3 +49,13 @@ To verify data after running the script:
 or use Python notebooks
 
 	python3 -m notebook
+
+## Screenshots
+
+`plot_sensor.py` output (dual-axis temperature/humidity, moving average smoothed):
+
+![plot_sensor.py output](screenshots/python_plot_sensor.JPG)
+
+`plot_multi_sensor.py` output (multiple measurements on one chart, distinguished by line style):
+
+![plot_multi_sensor.py output](screenshots/python_multi_sensor_plot.JPG)

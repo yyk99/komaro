@@ -5,3 +5,6 @@ __pycache__/
 *.png
 .ipynb_checkpoints/
 .venv*/
+.vs/
+**/.claude/settings.local.json
+**/.claude/worktrees/
