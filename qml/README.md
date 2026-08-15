@@ -8,6 +8,16 @@ Desktop skeleton in `desktop/`: a Qt Quick `ApplicationWindow` with `File`/`Help
 
 `mobile/` is the second shell for that same shared `AppActions`: a `ToolBar`+`Drawer` (Material Dark) presentation instead of a `MenuBar`, currently built for desktop only as a quick way to iterate on the mobile UI without an Android toolchain — see `mobile/README.md` and `TODO.md`.
 
+## Screenshots
+
+Desktop (`MenuBar` shell):
+
+![Desktop sensor viewer](screenshots/desktop-sensor-viewer.JPG)
+
+Mobile (`ToolBar`+`Drawer` shell, run in desktop mode):
+
+![Mobile sensor viewer](screenshots/mobile-sensor-viewer.JPG)
+
 ## Backend
 
 Starting with a C++ backend (native Qt Quick app, CMake + Qt for Android). Other backends (e.g. PySide6/Python, reusing the existing `nano/` InfluxDB query code) may be added later.
