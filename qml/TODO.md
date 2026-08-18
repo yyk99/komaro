@@ -14,8 +14,9 @@
 
 ## Mobile / Android
 
-- [ ] `qml/mobile` currently only builds as a desktop app with a mobile-look UI (for quick prototyping); actual Android packaging (NDK toolchain, Qt for Android kit, APK build) isn't set up yet
-- [ ] Once Android build is set up, verify touch interactions (Drawer, dialogs) on a real device/emulator
+- [x] Set up real Android packaging: `android-arm64` CMake preset in `mobile/CMakePresets.json` (Qt 6.8.3 `android_arm64_v8a` kit, NDK r26b, `QT_HOST_PATH` pointing at `msvc2022_64` for cross-build tooling) builds `komaro_qml_mobile.apk` via `cmake --build build/android-arm64 --target apk`
+- [ ] Verify touch interactions (Drawer, dialogs) on a real device/emulator — no device was connected when the APK was first built, only `adb devices` (empty) was checked
+- [ ] `mobile`'s desktop-look `windows-msvc` preset and the new `android-arm64` preset now diverge further (windeployqt guarded behind `if(NOT ANDROID)`); keep an eye on this if a third platform target is added
 
 ## Cleanup
 
