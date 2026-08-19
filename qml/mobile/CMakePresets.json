@@ -21,6 +21,25 @@
       "cacheVariables": {
         "CMAKE_PREFIX_PATH": "/home/yyk/Downloads/qt-everywhere-src-6.11.1/qtbase"
       }
+    },
+    {
+      "name": "android-arm64",
+      "displayName": "Android arm64-v8a (Qt 6.8.3, NDK r26b) - real Android build",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "E:/qt6/6.8.3/android_arm64_v8a/lib/cmake/Qt6/qt.toolchain.cmake",
+        "CMAKE_PREFIX_PATH": "E:/qt6/6.8.3/android_arm64_v8a",
+        "QT_HOST_PATH": "E:/qt6/6.8.3/msvc2022_64",
+        "ANDROID_SDK_ROOT": "C:/Users/yyk99/android-sdk",
+        "ANDROID_NDK_ROOT": "C:/Users/yyk99/android-sdk/ndk/26.1.10909125",
+        "CMAKE_MAKE_PROGRAM": "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_TESTS": "OFF"
+      },
+      "environment": {
+        "JAVA_HOME": "C:/Program Files/Eclipse Adoptium/jdk-17.0.20.8-hotspot"
+      }
     }
   ],
   "buildPresets": [
@@ -47,6 +66,11 @@
       "displayName": "Release",
       "configurePreset": "linux-rpi",
       "configuration": "Release"
+    },
+    {
+      "name": "android-arm64-debug",
+      "displayName": "Debug",
+      "configurePreset": "android-arm64"
     }
   ],
   "testPresets": [

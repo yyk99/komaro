@@ -6,7 +6,7 @@ A QML app to display temperature/humidity plots from InfluxDB, targeting desktop
 
 Desktop skeleton in `desktop/`: a Qt Quick `ApplicationWindow` with `File`/`Help` menus and a chart filling the space below the menu bar. The app's actions (Connect, About, Exit) live in `core/qml/AppActions.qml` (the `KomaroCore` QML module) rather than being hardcoded in `desktop/qml/Main.qml`, so `Main.qml` is just a "thin shell" that arranges those shared actions into a `MenuBar`. Connect is wired end-to-end: an editable history combo box (backed by `core/`'s `ConnectionManager`, persisted via `QSettings`) records the selected host, and a controls row (measurement, time range, moving-average window) drives `core/`'s `ChartController` to query InfluxDB and feed the result into `core/qml/SensorChart.qml` — a hand-rolled `Canvas` dual-axis (temperature/humidity) line chart shared with the mobile shell, mirroring `nano/plot_sensor.py`.
 
-`mobile/` is the second shell for that same shared `AppActions`: a `ToolBar`+`Drawer` (Material Dark) presentation instead of a `MenuBar`, currently built for desktop only as a quick way to iterate on the mobile UI without an Android toolchain — see `mobile/README.md` and `TODO.md`.
+`mobile/` is the second shell for that same shared `AppActions`: a `ToolBar`+`Drawer` (Material Dark) presentation instead of a `MenuBar`. It builds two ways: as a desktop app for quick UI iteration, and as a real Android `.apk` (Qt 6.8.3 `android_arm64_v8a` kit + NDK r26b) — see `mobile/README.md` for the Android toolchain setup and `TODO.md` for what's still outstanding (on-device testing).
 
 ## Screenshots
 
@@ -17,6 +17,10 @@ Desktop (`MenuBar` shell):
 Mobile (`ToolBar`+`Drawer` shell, run in desktop mode):
 
 ![Mobile sensor viewer](screenshots/mobile-sensor-viewer.JPG)
+
+Mobile, running as a real Android APK on a Lenovo Tab M11, showing a live 24h chart (552 points) queried from InfluxDB on-device:
+
+![Android tablet sensor viewer](screenshots/android-tablet-sensor-viewer.JPG)
 
 ## Backend
 

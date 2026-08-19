@@ -57,18 +57,26 @@ target_link_libraries(komaro_qml_mobile PRIVATE
 
 qt_import_qml_plugins(komaro_qml_mobile)
 
-get_target_property(_qt6_qmake_executable Qt6::qmake IMPORTED_LOCATION)
-get_filename_component(_qt6_bin_dir "${_qt6_qmake_executable}" DIRECTORY)
-find_program(WINDEPLOYQT_EXECUTABLE windeployqt PATHS "${_qt6_bin_dir}" NO_DEFAULT_PATH)
+# windeployqt deploys Qt DLLs next to a Windows executable; it doesn't apply
+# to Android (APK packaging is handled by the "apk"/"komaro_qml_mobile_make_apk"
+# targets that qt_add_executable already wires up under the ANDROID toolchain).
+# Skip it there - on Android, Qt6::qmake resolves to the *host* Qt kit's qmake
+# (needed for cross-build tooling), so without this guard the desktop kit's
+# windeployqt.exe would otherwise run against the Android .so and fail.
+if(NOT ANDROID)
+    get_target_property(_qt6_qmake_executable Qt6::qmake IMPORTED_LOCATION)
+    get_filename_component(_qt6_bin_dir "${_qt6_qmake_executable}" DIRECTORY)
+    find_program(WINDEPLOYQT_EXECUTABLE windeployqt PATHS "${_qt6_bin_dir}" NO_DEFAULT_PATH)
 
-if(WINDEPLOYQT_EXECUTABLE)
-    add_custom_command(TARGET komaro_qml_mobile POST_BUILD
-        COMMAND "${WINDEPLOYQT_EXECUTABLE}"
-                --verbose 0
-                --qmldir "${CMAKE_CURRENT_SOURCE_DIR}/qml"
-                "$<TARGET_FILE:komaro_qml_mobile>"
-        COMMENT "Deploying Qt runtime dependencies for komaro_qml_mobile"
-    )
-else()
-    message(WARNING "windeployqt not found under ${_qt6_bin_dir}; Qt runtime dependencies will not be deployed automatically")
+    if(WINDEPLOYQT_EXECUTABLE)
+        add_custom_command(TARGET komaro_qml_mobile POST_BUILD
+            COMMAND "${WINDEPLOYQT_EXECUTABLE}"
+                    --verbose 0
+                    --qmldir "${CMAKE_CURRENT_SOURCE_DIR}/qml"
+                    "$<TARGET_FILE:komaro_qml_mobile>"
+            COMMENT "Deploying Qt runtime dependencies for komaro_qml_mobile"
+        )
+    else()
+        message(WARNING "windeployqt not found under ${_qt6_bin_dir}; Qt runtime dependencies will not be deployed automatically")
+    endif()
 endif()

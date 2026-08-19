@@ -16,6 +16,27 @@ The software to be used:
     # Install Telegraf (MQTT to InfluxDB bridge)
     sudo apt install telegraf
 
+## Under the hood
+
+There are two independent sensor-ingestion pipelines in this repo, both writing into the same InfluxDB database (`komaro`).
+
+### Components
+
+- **InfluxDB** — the time-series database. It's the single point of storage both pipelines converge on, and the only thing `nano/plot_sensor.py`, `nano/plot_multi_sensor.py`, and the QML app's `InfluxDbClient` ever query.
+- **mosquitto** — an MQTT broker (pub/sub message bus), used only by the `pino/` (Raspberry Pi + DHT11) pipeline. `pino/dht11_reader.sh` reads `/dev/dht11` and *publishes* readings to it as MQTT topics — `home/<location>/temperature`, `home/<location>/humidity`, and a combined `home/<location>/dht11` message already in InfluxDB line-protocol format (`dht11 temperature_c=21.10,humidity=31.00`). Mosquitto itself doesn't store anything; it just relays those messages to whoever's subscribed.
+- **Telegraf** — a metrics-collection agent, configured (`telegraf/telegraf_mqtt.conf`) as an MQTT-to-InfluxDB bridge: it *subscribes* to `home/+/dht11` on mosquitto, parses the already-InfluxDB-formatted payload, pulls the location out of the topic path to use as the measurement name, and writes straight to InfluxDB. It's an alternative to `pino/mqtt2influx.py` — same job (MQTT subscriber → InfluxDB writer), done via config instead of a hand-rolled script. You'd run one or the other, not both.
+
+### How UDP is used
+
+UDP only shows up in the other, unrelated pipeline — `nano/` (the Arduino Nano 33 IoT board) — and mosquitto/Telegraf play no role there at all. It's a simple custom request/response protocol over a raw UDP socket, port 2390 (`nano/nanoget.py`):
+
+1. Open a UDP socket, `sendto()` the ASCII command `CONNECT\r\n` to the board.
+2. Wait (10s timeout, via `select`) for an ack datagram (`OK Connected\r\n`).
+3. Wait for a second datagram — a fixed 28-byte binary payload — and unpack it with `struct.unpack('<IiiiIII', data)`: little-endian, 1 unsigned int + 3 signed ints + 3 unsigned ints → `(serial, accel_x, accel_y, accel_z, humidity*100, temp_c*100, temp_f*100)`.
+4. `sendto()` a closing `CLOSE\r\n` command and close the socket.
+
+`nano/nanoget_snapshot2.py` runs this from cron every 5 minutes; `nano/nanoget2influx.py` does the same and writes the unpacked fields directly to InfluxDB via HTTP (the `influxdb` Python client) — no broker in between. UDP is purely the wire protocol between the Python poller and the physical Nano board; InfluxDB gets the data via a direct write, not through mosquitto/Telegraf.
+
 ## nanoget
 
 The crontab fragment:
