@@ -32,8 +32,24 @@ cmake --preset android-arm64
 cmake --build build/android-arm64 --target apk
 ```
 
-The APK lands at `build/android-arm64/android-build/build/outputs/apk/debug/android-build-debug.apk`. Install to a connected device with `adb install <path>`.
+The APK lands at `build/android-arm64/android-build/build/outputs/apk/debug/android-build-debug.apk`.
 
 `BUILD_TESTS` is forced `OFF` for this preset — `komaro_core`'s GTest suite is vcpkg/x64-windows only and doesn't cross-compile for Android.
+
+## Install & run on a real device
+
+1. On the device: Settings → About → tap "Build number" 7 times to unlock Developer options, then Settings → Developer options → enable **USB debugging**.
+2. Connect the device via USB. Check the "Charging this device via USB" notification and switch it to **File Transfer (MTP)** or **PTP** — "Charging only" mode doesn't expose the ADB interface, so Windows won't see the device for `adb` even with USB debugging on (confirmed via `Get-PnpDevice`: the device showed up as a phantom/absent MTP entry until the mode was switched).
+3. Accept the "Allow USB debugging?" prompt that appears on the device.
+4. From `C:\Users\<you>\android-sdk\platform-tools\`:
+   ```
+   adb devices                    # confirm the device shows up as "device", not "unauthorized"
+   adb install -r <path-to-apk>
+   adb shell am start -n org.qtproject.example.komaro_qml_mobile/org.qtproject.qt.android.bindings.QtActivity
+   ```
+   (`-r` reinstalls over an existing install, useful when iterating.)
+5. To sanity-check without touching the device: `adb shell pidof org.qtproject.example.komaro_qml_mobile` (confirms it's still running) and `adb shell screencap -p /sdcard/screen.png && adb pull /sdcard/screen.png` (grab a screenshot). If running these from Git Bash, prefix with `MSYS_NO_PATHCONV=1` — otherwise it mangles the device-side `/sdcard/...` path into a Windows path.
+
+Verified working on a Lenovo Tab M11 (`TB330FU`) — see `../screenshots/android-tablet-sensor-viewer.JPG`. Touch interaction (Drawer, Connect dialog, live querying) is still unverified on-device — see `../TODO.md`.
 
 The `windeployqt` post-build step in `CMakeLists.txt` is skipped under `if(NOT ANDROID)`: on Android, `Qt6::qmake` resolves to the *host* Qt kit (needed for cross-build tooling), so without the guard the desktop kit's `windeployqt.exe` would run against the Android `.so` and fail. APK packaging itself is handled by the `apk`/`komaro_qml_mobile_make_apk` targets Qt's CMake integration adds automatically under the Android toolchain.
