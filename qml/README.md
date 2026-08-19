@@ -18,7 +18,7 @@ Mobile (`ToolBar`+`Drawer` shell, run in desktop mode):
 
 ![Mobile sensor viewer](screenshots/mobile-sensor-viewer.JPG)
 
-Mobile, running as a real Android APK on a Lenovo Tab M11:
+Mobile, running as a real Android APK on a Lenovo Tab M11, showing a live 24h chart (552 points) queried from InfluxDB on-device:
 
 ![Android tablet sensor viewer](screenshots/android-tablet-sensor-viewer.JPG)
 

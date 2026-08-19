@@ -17,7 +17,7 @@
 - [x] Set up real Android packaging: `android-arm64` CMake preset in `mobile/CMakePresets.json` (Qt 6.8.3 `android_arm64_v8a` kit, NDK r26b, `QT_HOST_PATH` pointing at `msvc2022_64` for cross-build tooling) builds `komaro_qml_mobile.apk` via `cmake --build build/android-arm64 --target apk`
 - [x] Installed and launched on a real device (Lenovo Tab M11, `adb install` + `adb shell am start`) — layout renders correctly, no crash on launch; see `screenshots/android-tablet-sensor-viewer.JPG`
 - [ ] Drawer's hamburger icon (`☰`) renders as a missing-glyph box on-device — the Unicode char isn't in whatever font ships with this build; needs an icon font/image instead
-- [ ] Haven't yet verified touch interactions (opening the Drawer, Connect dialog, actually querying InfluxDB) on-device — only confirmed the initial "No data" state renders
+- [x] Verified live querying on-device: connected to InfluxDB from the tablet, loaded a 24h/552-point chart (measurement `sensor`, smoothing window 13) — see `screenshots/android-tablet-sensor-viewer.JPG`. Drawer/Connect-dialog touch interaction specifically (as opposed to querying) still not explicitly exercised.
 - [ ] `mobile`'s desktop-look `windows-msvc` preset and the new `android-arm64` preset now diverge further (windeployqt guarded behind `if(NOT ANDROID)`); keep an eye on this if a third platform target is added
 
 ## Cleanup
