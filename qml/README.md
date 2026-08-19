@@ -18,6 +18,10 @@ Mobile (`ToolBar`+`Drawer` shell, run in desktop mode):
 
 ![Mobile sensor viewer](screenshots/mobile-sensor-viewer.JPG)
 
+Mobile, running as a real Android APK on a Lenovo Tab M11:
+
+![Android tablet sensor viewer](screenshots/android-tablet-sensor-viewer.JPG)
+
 ## Backend
 
 Starting with a C++ backend (native Qt Quick app, CMake + Qt for Android). Other backends (e.g. PySide6/Python, reusing the existing `nano/` InfluxDB query code) may be added later.
