@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
+import QtCore
 import KomaroCore
 
 ApplicationWindow {
@@ -17,6 +18,12 @@ ApplicationWindow {
         id: appActions
         onConnectRequested: connectDialog.open()
         onAboutRequested: aboutDialog.open()
+    }
+
+    Settings {
+        category: "chart"
+        property alias timeRangeIndex: timeRangeCombo.currentIndex
+        property alias useFahrenheit: unitsSwitch.checked
     }
 
     header: ToolBar {
