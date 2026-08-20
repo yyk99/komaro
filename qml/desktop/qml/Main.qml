@@ -55,8 +55,8 @@ ApplicationWindow {
             Label { text: qsTr("Range:") }
             ComboBox {
                 id: timeRangeCombo
-                model: ["1h", "6h", "24h", "7d", "30d", "all"]
-                currentIndex: 3
+                model: ["1h", "6h", "24h", "48h", "7d", "30d", "all"]
+                currentIndex: 4
                 onActivated: reloadChart()
             }
             Label { text: qsTr("Smoothing:") }
