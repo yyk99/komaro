@@ -118,8 +118,12 @@ ApplicationWindow {
         modal: true
         standardButtons: Dialog.Ok
 
-        Label {
-            text: qsTr("Komaro Sensor Viewer\nDesktop QML app")
+        ColumnLayout {
+            spacing: 4
+
+            Label { text: qsTr("Komaro Sensor Viewer") }
+            Label { text: qsTr("Desktop QML app") }
+            Label { text: qsTr("Built: %1").arg(appBuildTimestamp) }
         }
     }
 

@@ -33,6 +33,14 @@ qt_add_executable(komaro_qml_mobile
     src/main.cpp
 )
 
+# `cmake --build build/<preset> -t touch` (or --target touch) forces
+# main.cpp to recompile even if unchanged, so its __DATE__/__TIME__-derived
+# appBuildTimestamp reflects the current build rather than a stale one.
+add_custom_target(touch
+    COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp"
+    COMMENT "Touching src/main.cpp to force a fresh build timestamp"
+)
+
 # See core/CMakeLists.txt for why QTP0004 is set explicitly.
 qt_policy(SET QTP0004 NEW)
 
