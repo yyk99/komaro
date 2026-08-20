@@ -33,6 +33,9 @@ qt_add_executable(komaro_qml_mobile
     src/main.cpp
 )
 
+# See core/CMakeLists.txt for why QTP0004 is set explicitly.
+qt_policy(SET QTP0004 NEW)
+
 qt_add_qml_module(komaro_qml_mobile
     URI KomaroMobile
     VERSION 1.0

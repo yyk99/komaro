@@ -48,6 +48,13 @@ target_link_libraries(komaro_core PUBLIC
 # already-existing one.
 qt_add_library(komaro_core_qml STATIC)
 
+# QML_FILES live under qml/, a subdirectory of this module's resource root,
+# which qt_add_qml_module treats as an "extra" importable sub-namespace as of
+# Qt 6.8 (QTP0004). We don't use that sub-namespace; NEW just means a harmless
+# extra qmldir gets generated for it, and is what Qt says will become the
+# unconditional default in a future version.
+qt_policy(SET QTP0004 NEW)
+
 qt_add_qml_module(komaro_core_qml
     URI KomaroCore
     VERSION 1.0
