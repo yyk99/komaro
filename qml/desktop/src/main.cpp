@@ -28,6 +28,11 @@ int main(int argc, char *argv[])
     auto *chartController = new komaro::core::ChartController(&app);
     engine.rootContext()->setContextProperty("chartController", chartController);
 
+    // __DATE__/__TIME__ reflect when this translation unit was last compiled,
+    // not necessarily the whole app - fine for an About-dialog build stamp,
+    // just don't expect it to update unless main.cpp itself gets recompiled.
+    engine.rootContext()->setContextProperty("appBuildTimestamp", QStringLiteral(__DATE__ " " __TIME__));
+
     engine.loadFromModule("KomaroDesktop", "Main");
 
     return app.exec();
