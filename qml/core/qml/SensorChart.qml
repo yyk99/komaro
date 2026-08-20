@@ -8,6 +8,7 @@ Item {
     id: root
 
     property var points: []
+    property bool useFahrenheit: false
 
     readonly property color temperatureColor: "#e06666"
     readonly property color humidityColor: "#6fa8dc"
@@ -23,6 +24,8 @@ Item {
             return pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()) + " " + pad2(d.getHours()) + ":"
                     + pad2(d.getMinutes())
         }
+
+        function celsiusToFahrenheit(c) { return c * 9 / 5 + 32 }
 
         function paddedRange(lo, hi) {
             if (hi - lo < 1e-6) {
@@ -83,9 +86,10 @@ Item {
                 ctx.stroke()
 
                 const tempValue = tempRange[1] - (g / gridLines) * (tempRange[1] - tempRange[0])
+                const displayTemp = root.useFahrenheit ? canvas.celsiusToFahrenheit(tempValue) : tempValue
                 ctx.fillStyle = root.temperatureColor
                 ctx.textAlign = "right"
-                ctx.fillText(tempValue.toFixed(1) + "C", marginLeft - 6, gy)
+                ctx.fillText(displayTemp.toFixed(1) + (root.useFahrenheit ? "F" : "C"), marginLeft - 6, gy)
 
                 const humidValue = humidRange[1] - (g / gridLines) * (humidRange[1] - humidRange[0])
                 ctx.fillStyle = root.humidityColor
@@ -127,7 +131,7 @@ Item {
             ctx.textAlign = "left"
             ctx.textBaseline = "top"
             ctx.fillStyle = root.temperatureColor
-            ctx.fillText(qsTr("Temperature (C)"), marginLeft + 8, 4)
+            ctx.fillText(qsTr("Temperature (%1)").arg(root.useFahrenheit ? "F" : "C"), marginLeft + 8, 4)
             ctx.fillStyle = root.humidityColor
             ctx.fillText(qsTr("Humidity (%)"), marginLeft + 8, 20)
         }
@@ -137,4 +141,5 @@ Item {
     }
 
     onPointsChanged: canvas.requestPaint()
+    onUseFahrenheitChanged: canvas.requestPaint()
 }

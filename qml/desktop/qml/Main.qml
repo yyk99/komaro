@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtCore
 import KomaroCore
 
 ApplicationWindow {
@@ -14,6 +15,12 @@ ApplicationWindow {
         id: appActions
         onConnectRequested: connectDialog.open()
         onAboutRequested: aboutDialog.open()
+    }
+
+    Settings {
+        category: "chart"
+        property alias timeRangeIndex: timeRangeCombo.currentIndex
+        property alias useFahrenheit: unitsSwitch.checked
     }
 
     menuBar: MenuBar {
@@ -55,8 +62,8 @@ ApplicationWindow {
             Label { text: qsTr("Range:") }
             ComboBox {
                 id: timeRangeCombo
-                model: ["1h", "6h", "24h", "7d", "30d", "all"]
-                currentIndex: 3
+                model: ["1h", "6h", "24h", "48h", "7d", "30d", "all"]
+                currentIndex: 4
                 onActivated: reloadChart()
             }
             Label { text: qsTr("Smoothing:") }
@@ -66,6 +73,11 @@ ApplicationWindow {
                 to: 200
                 value: 10
                 onValueModified: reloadChart()
+            }
+            Label { text: qsTr("Units:") }
+            Switch {
+                id: unitsSwitch
+                text: checked ? qsTr("°F") : qsTr("°C")
             }
             Button {
                 text: qsTr("Refresh")
@@ -85,6 +97,7 @@ ApplicationWindow {
                 anchors.fill: parent
                 anchors.margins: 8
                 points: chartController.points
+                useFahrenheit: unitsSwitch.checked
             }
 
             Label {

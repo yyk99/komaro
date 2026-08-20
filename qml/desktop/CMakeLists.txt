@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 QmlCore)
 
 qt_standard_project_setup()
 
@@ -33,6 +33,9 @@ qt_add_executable(komaro_qml_desktop
     src/main.cpp
 )
 
+# See core/CMakeLists.txt for why QTP0004 is set explicitly.
+qt_policy(SET QTP0004 NEW)
+
 qt_add_qml_module(komaro_qml_desktop
     URI KomaroDesktop
     VERSION 1.0
@@ -52,6 +55,7 @@ target_link_libraries(komaro_qml_desktop PRIVATE
     Qt6::Gui
     Qt6::Qml
     Qt6::Quick
+    Qt6::QmlCore
 )
 
 qt_import_qml_plugins(komaro_qml_desktop)

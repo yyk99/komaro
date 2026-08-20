@@ -25,7 +25,7 @@ KOMARO is an environmental sensor data retrieval project. It communicates with a
 
 ### qml/ - Qt6/QML sensor viewer (desktop + Android)
 
-A C++/QML app that queries InfluxDB and charts temperature/humidity, mirroring `nano/plot_sensor.py`. Three CMake projects, each with its own `CMakePresets.json`:
+A C++/QML app that queries InfluxDB and charts temperature/humidity, mirroring `nano/plot_sensor.py`. Three CMake projects, each with its own `CMakePresets.json`. See `qml/KB.md` for QML/Qt topics (e.g. the headless visual-verification technique used to check chart rendering) that don't fit `README.md`.
 
 - `qml/core/` - static libs shared by both shells, no UI of its own:
   - `komaro_core` - `InfluxResponseParser`, `InfluxDbClient` (async `QNetworkAccessManager`), `RecentServers`, `MovingAverage`, `ChartController`, `ConnectionManager`, `SensorPoint`. GTest suite in `tests/` (`BUILD_TESTS` cache var, default `ON`).
@@ -37,9 +37,9 @@ Build/test (see `qml/README.md`, `qml/core/README.md`, `qml/mobile/README.md` fo
 
 ```
 cd qml/desktop   # or qml/core, qml/mobile
-cmake --preset windows-msvc
-cmake --build --preset windows-msvc-debug
-ctest --preset windows-msvc-debug
+cmake --preset windows-msvc      # or linux-rpi on the Raspberry Pi dev box
+cmake --build --preset windows-msvc-debug     # or linux-rpi-debug
+ctest --preset windows-msvc-debug             # or linux-rpi-debug
 ```
 
 Android build (`qml/mobile` only): `cmake --preset android-arm64 && cmake --build build/android-arm64 --target apk`. Requires the Android SDK/NDK to live under a **space-free path** (`sdkmanager.bat` and Gradle packaging both break under `Program Files (x86)`), NDK r26b (must match `android_arm64_v8a/mkspecs/qdevice.pri`), and `platforms;android-35`+ (Qt's bundled AndroidX deps need compileSdk >= 34).
@@ -49,6 +49,8 @@ Non-obvious build gotchas worth knowing before touching `qml/core/CMakeLists.txt
 - `komaro_core_qml` is a separate target from `komaro_core` (not `qt_add_qml_module` attached to an existing lib) - otherwise the generated QML plugin doesn't propagate to consumers.
 - `ConnectionManager`/`ChartController` are exposed via `QQmlContext::setContextProperty` (in each app's `main.cpp`), not `QML_ELEMENT` - see `qml/core/README.md` for why.
 - The `windeployqt` post-build step in `qml/mobile/CMakeLists.txt` is guarded with `if(NOT ANDROID)` - `Qt6::qmake` resolves to the *host* Qt kit under the Android toolchain, so without the guard it runs against the Android `.so` and fails.
+- `qt_add_qml_module` needs `qt_policy(SET QTP0004 NEW)` set beforehand in all three `CMakeLists.txt` - each project's `QML_FILES` live under a `qml/` subdirectory of the module's resource root, which Qt 6.8+ otherwise warns about wanting to treat as an "extra" importable sub-namespace.
+- Persisted UI prefs (e.g. `desktop/qml/Main.qml`'s time-range/units `Settings {}` block) use the `QtCore` QML module, not the deprecated `Qt.labs.settings` - it needs `QCoreApplication::setOrganizationName("Komaro")`/`setApplicationName("QmlApp")` set in each app's `main.cpp` to land under the same `~/.config/Komaro/` directory as `ConnectionManager`'s `QSettings` (a different file though: `QmlApp.conf`/`NativeFormat` vs `ConnectionManager`'s explicit `QmlApp.ini`/`IniFormat`).
 
 ## Running
 
@@ -77,6 +79,8 @@ py -m venv .venv
 The project uses mosquitto (MQTT), InfluxDB, and Telegraf for the data pipeline. See README.md for install instructions.
 
 For `qml/` on this Windows dev machine: Qt 6.8.3 at `E:\qt6\6.8.3\` (`msvc2022_64`, `android_arm64_v8a`, etc.), vcpkg at `G:\opt\vcpkg` (GTest only), Android SDK/NDK at `C:\Users\<user>\android-sdk` (deliberately not under `Program Files`), JDK 17 for Gradle.
+
+For `qml/` on the Raspberry Pi Linux dev box (the `linux-rpi` preset): Ninja Multi-Config against a self-built Qt 6.11.1 tree at `/home/yyk/Downloads/qt-everywhere-src-6.11.1/qtbase` (set via `CMAKE_PREFIX_PATH` in the preset, not a system Qt), GTest via the `libgtest-dev` apt package. `windeployqt` doesn't exist on Linux, so the post-build deploy step just no-ops with a warning - fine, since nothing packages this build for distribution.
 
 ## Git
 
