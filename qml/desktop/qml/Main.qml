@@ -67,6 +67,11 @@ ApplicationWindow {
                 value: 10
                 onValueModified: reloadChart()
             }
+            Label { text: qsTr("Units:") }
+            Switch {
+                id: unitsSwitch
+                text: checked ? qsTr("°F") : qsTr("°C")
+            }
             Button {
                 text: qsTr("Refresh")
                 enabled: connectionManager.currentHost.length > 0
@@ -85,6 +90,7 @@ ApplicationWindow {
                 anchors.fill: parent
                 anchors.margins: 8
                 points: chartController.points
+                useFahrenheit: unitsSwitch.checked
             }
 
             Label {
