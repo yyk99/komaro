@@ -24,6 +24,8 @@ Item {
                     + pad2(d.getMinutes())
         }
 
+        function celsiusToFahrenheit(c) { return c * 9 / 5 + 32 }
+
         function paddedRange(lo, hi) {
             if (hi - lo < 1e-6) {
                 return [lo - 1, hi + 1]
@@ -45,7 +47,7 @@ Item {
                 return
             }
 
-            const marginLeft = 56
+            const marginLeft = 96
             const marginRight = 56
             const marginTop = 28
             const marginBottom = 40
@@ -85,7 +87,8 @@ Item {
                 const tempValue = tempRange[1] - (g / gridLines) * (tempRange[1] - tempRange[0])
                 ctx.fillStyle = root.temperatureColor
                 ctx.textAlign = "right"
-                ctx.fillText(tempValue.toFixed(1) + "C", marginLeft - 6, gy)
+                ctx.fillText(tempValue.toFixed(1) + "C / " + canvas.celsiusToFahrenheit(tempValue).toFixed(1) + "F",
+                             marginLeft - 6, gy)
 
                 const humidValue = humidRange[1] - (g / gridLines) * (humidRange[1] - humidRange[0])
                 ctx.fillStyle = root.humidityColor
@@ -127,7 +130,7 @@ Item {
             ctx.textAlign = "left"
             ctx.textBaseline = "top"
             ctx.fillStyle = root.temperatureColor
-            ctx.fillText(qsTr("Temperature (C)"), marginLeft + 8, 4)
+            ctx.fillText(qsTr("Temperature (C / F)"), marginLeft + 8, 4)
             ctx.fillStyle = root.humidityColor
             ctx.fillText(qsTr("Humidity (%)"), marginLeft + 8, 20)
         }
