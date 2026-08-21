@@ -21,6 +21,7 @@ ApplicationWindow {
         category: "chart"
         property alias timeRangeIndex: timeRangeCombo.currentIndex
         property alias useFahrenheit: unitsSwitch.checked
+        property alias smoothingWindow: windowSpin.value
     }
 
     menuBar: MenuBar {
