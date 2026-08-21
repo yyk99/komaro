@@ -1,0 +1,117 @@
+{
+  "version": 4,
+  "cmakeMinimumRequired": { "major": 3, "minor": 21, "patch": 0 },
+  "include": ["CMakePresets.json"],
+  "configurePresets": [
+    {
+      "name": "windows-msvc",
+      "displayName": "Windows x64 (MSVC 2022, Qt 6.8.3) - mobile-look desktop prototype",
+      "inherits": "windows-msvc-base",
+      "toolchainFile": "G:/opt/vcpkg/scripts/buildsystems/vcpkg.cmake",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "E:/qt6/6.8.3/msvc2022_64"
+      }
+    },
+    {
+      "name": "linux-rpi",
+      "displayName": "Linux (Raspberry Pi, GCC, Qt 6.11.1 + system gtest) - mobile-look desktop prototype",
+      "inherits": "linux-rpi-base",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "/home/yyk/Downloads/qt-everywhere-src-6.11.1/qtbase"
+      }
+    },
+    {
+      "name": "linux-ubuntu",
+      "displayName": "Linux (Ubuntu x86_64, GCC, Qt 6.8.1) - mobile-look desktop prototype",
+      "inherits": "linux-ubuntu-base",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "/home/yyk/Qt/6.8.1/gcc_64"
+      }
+    },
+    {
+      "name": "android-arm64",
+      "displayName": "Android arm64-v8a (Qt 6.8.3, NDK r26b) - real Android build",
+      "inherits": "android-arm64-base",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "E:/qt6/6.8.3/android_arm64_v8a/lib/cmake/Qt6/qt.toolchain.cmake",
+        "CMAKE_PREFIX_PATH": "E:/qt6/6.8.3/android_arm64_v8a",
+        "QT_HOST_PATH": "E:/qt6/6.8.3/msvc2022_64",
+        "ANDROID_SDK_ROOT": "C:/Users/yyk99/android-sdk",
+        "ANDROID_NDK_ROOT": "C:/Users/yyk99/android-sdk/ndk/26.1.10909125",
+        "CMAKE_MAKE_PROGRAM": "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe"
+      },
+      "environment": {
+        "JAVA_HOME": "C:/Program Files/Eclipse Adoptium/jdk-17.0.20.8-hotspot"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-msvc-debug",
+      "displayName": "Debug",
+      "configurePreset": "windows-msvc",
+      "configuration": "Debug"
+    },
+    {
+      "name": "windows-msvc-release",
+      "displayName": "Release",
+      "configurePreset": "windows-msvc",
+      "configuration": "Release"
+    },
+    {
+      "name": "linux-rpi-debug",
+      "displayName": "Debug",
+      "configurePreset": "linux-rpi",
+      "configuration": "Debug"
+    },
+    {
+      "name": "linux-rpi-release",
+      "displayName": "Release",
+      "configurePreset": "linux-rpi",
+      "configuration": "Release"
+    },
+    {
+      "name": "linux-ubuntu-debug",
+      "displayName": "Debug",
+      "configurePreset": "linux-ubuntu",
+      "configuration": "Debug"
+    },
+    {
+      "name": "linux-ubuntu-release",
+      "displayName": "Release",
+      "configurePreset": "linux-ubuntu",
+      "configuration": "Release"
+    },
+    {
+      "name": "android-arm64-debug",
+      "displayName": "Debug",
+      "configurePreset": "android-arm64"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "windows-msvc-debug",
+      "displayName": "Debug",
+      "configurePreset": "windows-msvc",
+      "configuration": "Debug",
+      "environment": {
+        "PATH": "E:/qt6/6.8.3/msvc2022_64/bin;$penv{PATH}"
+      },
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "linux-rpi-debug",
+      "displayName": "Debug",
+      "configurePreset": "linux-rpi",
+      "configuration": "Debug",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "linux-ubuntu-debug",
+      "displayName": "Debug",
+      "configurePreset": "linux-ubuntu",
+      "configuration": "Debug",
+      "output": { "outputOnFailure": true }
+    }
+  ]
+}
