@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QStringList>
 #include <QVariantList>
 
 #include "komaro/core/InfluxDbClient.h"
@@ -15,18 +16,22 @@ namespace komaro::core {
 //
 // Fetches a measurement's temperature/humidity time series from InfluxDB and
 // applies the same moving-average smoothing as nano/plot_sensor.py before
-// exposing it as `points`, ready for SensorChart.qml to draw.
+// exposing it as `points`, ready for SensorChart.qml to draw. Also tracks a
+// most-recently-used list of measurement names (persisted via QSettings,
+// mirroring ConnectionManager's recentServers), updated on every load() call.
 class ChartController : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QVariantList points READ points NOTIFY pointsChanged)
     Q_PROPERTY(QString status READ status NOTIFY statusChanged)
+    Q_PROPERTY(QStringList recentMeasurements READ recentMeasurements NOTIFY recentMeasurementsChanged)
 
 public:
     explicit ChartController(QObject *parent = nullptr);
 
     QVariantList points() const;
     QString status() const;
+    QStringList recentMeasurements() const;
 
     // timeRange: InfluxDB duration literal (e.g. "1h", "7d") or "all".
     // window: moving-average window size in samples; < 2 disables smoothing.
@@ -38,14 +43,19 @@ public:
 signals:
     void pointsChanged();
     void statusChanged();
+    void recentMeasurementsChanged();
 
 private:
     void setStatus(const QString &status);
     void setPoints(const std::vector<SensorPoint> &points);
+    void rememberMeasurement(const QString &measurement);
+    void loadRecentMeasurements();
+    void saveRecentMeasurements();
 
     InfluxDbClient *m_client = nullptr;
     QVariantList m_points;
     QString m_status;
+    QStringList m_recentMeasurements;
 };
 
 } // namespace komaro::core

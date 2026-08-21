@@ -83,7 +83,7 @@ ApplicationWindow {
 
     function reloadChart() {
         if (connectionManager.currentHost.length > 0) {
-            chartController.load(connectionManager.currentHost, measurementField.text,
+            chartController.load(connectionManager.currentHost, measurementCombo.editText,
                                   timeRangeCombo.currentText, windowSpin.value)
         }
     }
@@ -102,11 +102,17 @@ ApplicationWindow {
                 spacing: 8
 
                 Label { text: qsTr("Measurement:") }
-                TextField {
-                    id: measurementField
-                    text: "sensor"
+                ComboBox {
+                    id: measurementCombo
                     Layout.fillWidth: true
-                    onEditingFinished: reloadChart()
+                    editable: true
+                    model: chartController.recentMeasurements
+                    onAccepted: reloadChart()
+                    onActivated: reloadChart()
+                    Component.onCompleted: {
+                        editText = chartController.recentMeasurements.length > 0
+                                ? chartController.recentMeasurements[0] : "sensor"
+                    }
                 }
             }
             RowLayout {

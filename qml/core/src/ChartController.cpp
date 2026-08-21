@@ -1,14 +1,21 @@
 #include "komaro/core/ChartController.h"
 
+#include <QSettings>
 #include <QVariantMap>
 
 #include "komaro/core/MovingAverage.h"
+#include "komaro/core/RecentServers.h"
 
 namespace komaro::core {
+
+namespace {
+constexpr auto kRecentMeasurementsKey = "recentMeasurements";
+}
 
 ChartController::ChartController(QObject *parent)
     : QObject(parent)
 {
+    loadRecentMeasurements();
 }
 
 QVariantList ChartController::points() const
@@ -21,6 +28,11 @@ QString ChartController::status() const
     return m_status;
 }
 
+QStringList ChartController::recentMeasurements() const
+{
+    return m_recentMeasurements;
+}
+
 void ChartController::load(const QString &host, const QString &measurement, const QString &timeRange, int window,
                             quint16 port)
 {
@@ -30,6 +42,8 @@ void ChartController::load(const QString &host, const QString &measurement, cons
     }
     const QString trimmedMeasurement =
         measurement.trimmed().isEmpty() ? QStringLiteral("sensor") : measurement.trimmed();
+
+    rememberMeasurement(trimmedMeasurement);
 
     setStatus(tr("Loading %1 from %2...").arg(trimmedMeasurement, trimmedHost));
 
@@ -98,6 +112,31 @@ void ChartController::setPoints(const std::vector<SensorPoint> &points)
     }
     m_points = list;
     emit pointsChanged();
+}
+
+void ChartController::rememberMeasurement(const QString &measurement)
+{
+    const QStringList updated = RecentServers::withServerAddedToFront(m_recentMeasurements, measurement);
+    if (updated == m_recentMeasurements) {
+        return;
+    }
+    m_recentMeasurements = updated;
+    saveRecentMeasurements();
+    emit recentMeasurementsChanged();
+}
+
+void ChartController::loadRecentMeasurements()
+{
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope, QStringLiteral("Komaro"),
+                        QStringLiteral("QmlApp"));
+    m_recentMeasurements = settings.value(QLatin1String(kRecentMeasurementsKey)).toStringList();
+}
+
+void ChartController::saveRecentMeasurements()
+{
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope, QStringLiteral("Komaro"),
+                        QStringLiteral("QmlApp"));
+    settings.setValue(QLatin1String(kRecentMeasurementsKey), m_recentMeasurements);
 }
 
 } // namespace komaro::core
