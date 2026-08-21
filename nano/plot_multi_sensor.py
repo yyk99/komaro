@@ -22,6 +22,7 @@ INFLUX_PORT = 8086
 INFLUX_DB = "komaro"
 
 LINE_STYLES = ["-", "--", "-.", ":", (0, (3, 1, 1, 1)), (0, (5, 2))]
+MARKERS = ['x', 'o', '^', 'D', 's', 'v', '*', '+']
 
 
 def main(influx_host="localhost", time_range="7d", window=10, measurements=None):
@@ -58,9 +59,11 @@ def main(influx_host="localhost", time_range="7d", window=10, measurements=None)
         humids = moving_average([p["humidity"] for p in points], window)
 
         ls = LINE_STYLES[i % len(LINE_STYLES)]
+        mk = MARKERS[(i - 1) % len(MARKERS)] if i > 0 else None
+        marker_kw = {"marker": mk, "markersize": 6, "markevery": 10} if mk else {}
 
-        ax_temp.plot(times, temps, linewidth=0.8, color="red", linestyle=ls, label=f"{measurement} - Temp")
-        ax_humid.plot(times, humids, linewidth=0.8, color="blue", linestyle=ls, label=f"{measurement} - Humid")
+        ax_temp.plot(times, temps, linewidth=0.8, color="red", linestyle=ls, label=f"{measurement} - Temp", **marker_kw)
+        ax_humid.plot(times, humids, linewidth=0.8, color="blue", linestyle=ls, label=f"{measurement} - Humid", **marker_kw)
 
     ax_temp.set_ylabel("Temperature (C / F)", color="red")
     ax_temp.tick_params(axis="y", labelcolor="red")
