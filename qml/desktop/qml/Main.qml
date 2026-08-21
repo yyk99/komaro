@@ -58,6 +58,7 @@ ApplicationWindow {
                 id: measurementCombo
                 Layout.preferredWidth: 140
                 editable: true
+                inputMethodHints: Qt.ImhNoAutoUppercase
                 model: chartController.recentMeasurements
                 onAccepted: reloadChart()
                 onActivated: reloadChart()
