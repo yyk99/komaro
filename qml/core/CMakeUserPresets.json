@@ -1,0 +1,96 @@
+{
+  "version": 4,
+  "cmakeMinimumRequired": { "major": 3, "minor": 21, "patch": 0 },
+  "include": ["CMakePresets.json"],
+  "configurePresets": [
+    {
+      "name": "windows-msvc",
+      "displayName": "Windows x64 (MSVC 2022, Qt 6.8.3 + vcpkg gtest)",
+      "inherits": "windows-msvc-base",
+      "toolchainFile": "G:/opt/vcpkg/scripts/buildsystems/vcpkg.cmake",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "E:/qt6/6.8.3/msvc2022_64"
+      }
+    },
+    {
+      "name": "linux-rpi",
+      "displayName": "Linux (Raspberry Pi, GCC, Qt 6.11.1 + system gtest)",
+      "inherits": "linux-rpi-base",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "/home/yyk/Downloads/qt-everywhere-src-6.11.1/qtbase"
+      }
+    },
+    {
+      "name": "linux-ubuntu",
+      "displayName": "Linux (Ubuntu x86_64, GCC, Qt 6.8.1)",
+      "inherits": "linux-ubuntu-base",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "/home/yyk/Qt/6.8.1/gcc_64"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-msvc-debug",
+      "displayName": "Debug",
+      "configurePreset": "windows-msvc",
+      "configuration": "Debug"
+    },
+    {
+      "name": "windows-msvc-release",
+      "displayName": "Release",
+      "configurePreset": "windows-msvc",
+      "configuration": "Release"
+    },
+    {
+      "name": "linux-rpi-debug",
+      "displayName": "Debug",
+      "configurePreset": "linux-rpi",
+      "configuration": "Debug"
+    },
+    {
+      "name": "linux-rpi-release",
+      "displayName": "Release",
+      "configurePreset": "linux-rpi",
+      "configuration": "Release"
+    },
+    {
+      "name": "linux-ubuntu-debug",
+      "displayName": "Debug",
+      "configurePreset": "linux-ubuntu",
+      "configuration": "Debug"
+    },
+    {
+      "name": "linux-ubuntu-release",
+      "displayName": "Release",
+      "configurePreset": "linux-ubuntu",
+      "configuration": "Release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "windows-msvc-debug",
+      "displayName": "Debug",
+      "configurePreset": "windows-msvc",
+      "configuration": "Debug",
+      "environment": {
+        "PATH": "E:/qt6/6.8.3/msvc2022_64/bin;$penv{PATH}"
+      },
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "linux-rpi-debug",
+      "displayName": "Debug",
+      "configurePreset": "linux-rpi",
+      "configuration": "Debug",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "linux-ubuntu-debug",
+      "displayName": "Debug",
+      "configurePreset": "linux-ubuntu",
+      "configuration": "Debug",
+      "output": { "outputOnFailure": true }
+    }
+  ]
+}
