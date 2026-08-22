@@ -73,6 +73,12 @@ Same `BUILD_TESTS=OFF` caveat as the Windows preset applies.
    adb shell am start -n org.qtproject.example.komaro_qml_mobile/org.qtproject.qt.android.bindings.QtActivity
    ```
    (`-r` reinstalls over an existing install, useful when iterating.)
+
+   Or, once `adb devices` shows the device as authorized, skip the manual `adb install`/`am start` invocations and use the CMake targets instead (wrap the same commands, using each preset's `ANDROID_SDK_ROOT`):
+   ```
+   cmake --build build/<android-preset> --target install-apk   # rebuilds the apk if stale, then installs it
+   cmake --build build/<android-preset> --target launch-apk
+   ```
 5. To sanity-check without touching the device: `adb shell pidof org.qtproject.example.komaro_qml_mobile` (confirms it's still running) and `adb shell screencap -p /sdcard/screen.png && adb pull /sdcard/screen.png` (grab a screenshot). If running these from Git Bash, prefix with `MSYS_NO_PATHCONV=1` — otherwise it mangles the device-side `/sdcard/...` path into a Windows path.
 
 Verified working on a Lenovo Tab M11 (`TB330FU`) — see `../screenshots/android-tablet-sensor-viewer.JPG`. Touch interaction (Drawer, Connect dialog, live querying) is still unverified on-device — see `../TODO.md`.

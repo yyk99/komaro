@@ -92,3 +92,26 @@ if(NOT ANDROID)
         message(WARNING "windeployqt not found under ${_qt6_bin_dir}; Qt runtime dependencies will not be deployed automatically")
     endif()
 endif()
+
+# `cmake --build <preset> --target install-apk` / `launch-apk` wrap the adb
+# commands documented in README.md's "Install & run on a real device"
+# section. ANDROID_SDK_ROOT is already a preset cache variable, so these
+# work unmodified on any host's Android preset.
+if(ANDROID)
+    set(_android_apk_path "${CMAKE_BINARY_DIR}/android-build/build/outputs/apk/debug/android-build-debug.apk")
+    # Qt's default Android package name, derived from the target name - see
+    # README.md's adb instructions, which rely on this same default.
+    set(_android_package "org.qtproject.example.komaro_qml_mobile")
+
+    add_custom_target(install-apk
+        COMMAND "${ANDROID_SDK_ROOT}/platform-tools/adb" install -r "${_android_apk_path}"
+        COMMENT "Installing ${_android_apk_path} onto the connected Android device"
+    )
+    add_dependencies(install-apk apk)
+
+    add_custom_target(launch-apk
+        COMMAND "${ANDROID_SDK_ROOT}/platform-tools/adb" shell am start
+                -n "${_android_package}/org.qtproject.qt.android.bindings.QtActivity"
+        COMMENT "Launching ${_android_package} on the connected Android device"
+    )
+endif()
