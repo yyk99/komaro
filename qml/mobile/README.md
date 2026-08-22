@@ -63,6 +63,14 @@ Same `BUILD_TESTS=OFF` caveat as the Windows preset applies.
 
 ## Install & run on a real device
 
+**Linux only, one-time setup:** `adb devices` will list the device but show `no permissions` until a udev rule grants USB access. Add one for the device's USB vendor ID (find it via `lsusb` after connecting — e.g. `17ef` for Lenovo):
+```
+echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="17ef", MODE="0666", GROUP="plugdev"' | sudo tee /etc/udev/rules.d/51-android.rules
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+Then unplug and replug the device (safest way to force re-enumeration under the new rule). This needs your user account in the `plugdev` group (`groups` to check).
+
 1. On the device: Settings → About → tap "Build number" 7 times to unlock Developer options, then Settings → Developer options → enable **USB debugging**.
 2. Connect the device via USB. Check the "Charging this device via USB" notification and switch it to **File Transfer (MTP)** or **PTP** — "Charging only" mode doesn't expose the ADB interface, so Windows won't see the device for `adb` even with USB debugging on (confirmed via `Get-PnpDevice`: the device showed up as a phantom/absent MTP entry until the mode was switched).
 3. Accept the "Allow USB debugging?" prompt that appears on the device.
