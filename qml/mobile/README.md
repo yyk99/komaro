@@ -21,6 +21,8 @@ Executables land in `build/windows-msvc/bin/<Config>/`; `windeployqt` runs autom
 
 ## Build (Android)
 
+### Windows (`android-arm64` preset)
+
 Requires, alongside the Qt 6.8.3 `android_arm64_v8a` kit (`E:\qt6\6.8.3\android_arm64_v8a`):
 - Android SDK with `platform-tools`, `build-tools;35.0.0`, `platforms;android-35`, and NDK **r26b** (`ndk;26.1.10909125` — must match `android_arm64_v8a/mkspecs/qdevice.pri`'s `DEFAULT_ANDROID_NDK_ROOT`)
 - A JDK 17 (`JAVA_HOME`) for Gradle
@@ -35,6 +37,29 @@ cmake --build build/android-arm64 --target apk
 The APK lands at `build/android-arm64/android-build/build/outputs/apk/debug/android-build-debug.apk`.
 
 `BUILD_TESTS` is forced `OFF` for this preset — `komaro_core`'s GTest suite is vcpkg/x64-windows only and doesn't cross-compile for Android.
+
+### Linux (`android-arm64-ubuntu` preset, host kestrel)
+
+No Android Studio needed — the command-line tools are enough since CMake/Gradle drive everything:
+
+1. **SDK command-line tools**: download the Linux "command line tools only" zip from https://developer.android.com/studio/index.html#command-line-tools-only and unpack it so `sdkmanager` ends up at `/home/yyk/android-sdk/cmdline-tools/latest/bin/sdkmanager` (the SDK manager requires exactly this `cmdline-tools/latest/` layout).
+2. **Pull the actual packages** (same versions as the Windows setup above):
+   ```
+   cd /home/yyk/android-sdk/cmdline-tools/latest/bin
+   ./sdkmanager --sdk_root=/home/yyk/android-sdk --licenses
+   ./sdkmanager --sdk_root=/home/yyk/android-sdk \
+     "platform-tools" "platforms;android-35" "build-tools;35.0.0" "ndk;26.1.10909125"
+   ```
+3. **Qt's `android_arm64_v8a` kit** isn't part of the SDK/NDK download — install it through the Qt Maintenance Tool (the same one that installed the `gcc_64` kit at `/home/yyk/Qt/6.8.1/`), adding the Android arm64-v8a component for 6.8.1.
+4. `JAVA_HOME` uses the system OpenJDK (`/usr/lib/jvm/java-21-openjdk-amd64`) — JDK 21, not 17 like the Windows setup; not yet verified against the Android Gradle Plugin version Qt 6.8.1 bundles.
+
+```
+cd qml/mobile
+cmake --preset android-arm64-ubuntu
+cmake --build build/android-arm64-ubuntu --target apk
+```
+
+Same `BUILD_TESTS=OFF` caveat as the Windows preset applies.
 
 ## Install & run on a real device
 
