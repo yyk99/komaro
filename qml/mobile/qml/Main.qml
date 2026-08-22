@@ -236,6 +236,7 @@ ApplicationWindow {
                 id: hostCombo
                 Layout.preferredWidth: 240
                 editable: true
+                inputMethodHints: Qt.ImhNoAutoUppercase
                 model: connectionManager.recentServers
             }
         }
