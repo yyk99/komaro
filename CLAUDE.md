@@ -86,3 +86,4 @@ For `qml/` on the Raspberry Pi Linux dev box (the `linux-rpi` preset): Ninja Mul
 
 - Main branch: `master`
 - Feature branch naming: `f/<username>/<feature>`
+- Pull request titles must include the PR id as a `(#<id>)` suffix, e.g. `Add units toggle, persisted UI prefs, and Android build docs (#7)` - this becomes the squash-merge commit title, so set it explicitly when merging (`gh pr merge --squash --subject "... (#<id>)"`) rather than relying on GitHub's default
