@@ -78,7 +78,7 @@ Then unplug and replug the device (safest way to force re-enumeration under the 
    ```
    adb devices                    # confirm the device shows up as "device", not "unauthorized"
    adb install -r <path-to-apk>
-   adb shell am start -n org.qtproject.example.komaro_qml_mobile/org.qtproject.qt.android.bindings.QtActivity
+   adb shell am start -n io.github.yyk99.komaro/org.qtproject.qt.android.bindings.QtActivity
    ```
    (`-r` reinstalls over an existing install, useful when iterating.)
 
@@ -87,7 +87,7 @@ Then unplug and replug the device (safest way to force re-enumeration under the 
    cmake --build build/<android-preset> --target install-apk   # rebuilds the apk if stale, then installs it
    cmake --build build/<android-preset> --target launch-apk
    ```
-5. To sanity-check without touching the device: `adb shell pidof org.qtproject.example.komaro_qml_mobile` (confirms it's still running) and `adb shell screencap -p /sdcard/screen.png && adb pull /sdcard/screen.png` (grab a screenshot). If running these from Git Bash, prefix with `MSYS_NO_PATHCONV=1` — otherwise it mangles the device-side `/sdcard/...` path into a Windows path.
+5. To sanity-check without touching the device: `adb shell pidof io.github.yyk99.komaro` (confirms it's still running) and `adb shell screencap -p /sdcard/screen.png && adb pull /sdcard/screen.png` (grab a screenshot). If running these from Git Bash, prefix with `MSYS_NO_PATHCONV=1` — otherwise it mangles the device-side `/sdcard/...` path into a Windows path.
 
 Verified working on a Lenovo Tab M11 (`TB330FU`) — see `../screenshots/android-tablet-sensor-viewer.JPG`. Touch interaction (Drawer, Connect dialog, live querying) is still unverified on-device — see `../TODO.md`.
 

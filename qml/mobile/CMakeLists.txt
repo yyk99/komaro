@@ -52,8 +52,16 @@ qt_add_qml_module(komaro_qml_mobile
         qml/Main.qml
 )
 
+# Reverse-GitHub package name (no owned domain for a real reverse-DNS one).
+# Qt's default ("org.qtproject.example.<target>") is a shared placeholder -
+# every unconfigured Qt Android app looks like the same app to Android's
+# package manager, so installing a build from a different machine/project
+# over it fails with INSTALL_FAILED_UPDATE_INCOMPATIBLE (signature mismatch).
+set(KOMARO_ANDROID_PACKAGE_NAME "io.github.yyk99.komaro")
+
 set_target_properties(komaro_qml_mobile PROPERTIES
     WIN32_EXECUTABLE TRUE
+    QT_ANDROID_PACKAGE_NAME "${KOMARO_ANDROID_PACKAGE_NAME}"
 )
 
 target_link_libraries(komaro_qml_mobile PRIVATE
@@ -99,9 +107,7 @@ endif()
 # work unmodified on any host's Android preset.
 if(ANDROID)
     set(_android_apk_path "${CMAKE_BINARY_DIR}/android-build/build/outputs/apk/debug/android-build-debug.apk")
-    # Qt's default Android package name, derived from the target name - see
-    # README.md's adb instructions, which rely on this same default.
-    set(_android_package "org.qtproject.example.komaro_qml_mobile")
+    set(_android_package "${KOMARO_ANDROID_PACKAGE_NAME}")
 
     add_custom_target(install-apk
         COMMAND "${ANDROID_SDK_ROOT}/platform-tools/adb" install -r "${_android_apk_path}"
