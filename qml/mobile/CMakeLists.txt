@@ -52,8 +52,16 @@ qt_add_qml_module(komaro_qml_mobile
         qml/Main.qml
 )
 
+# Reverse-GitHub package name (no owned domain for a real reverse-DNS one).
+# Qt's default ("org.qtproject.example.<target>") is a shared placeholder -
+# every unconfigured Qt Android app looks like the same app to Android's
+# package manager, so installing a build from a different machine/project
+# over it fails with INSTALL_FAILED_UPDATE_INCOMPATIBLE (signature mismatch).
+set(KOMARO_ANDROID_PACKAGE_NAME "io.github.yyk99.komaro")
+
 set_target_properties(komaro_qml_mobile PROPERTIES
     WIN32_EXECUTABLE TRUE
+    QT_ANDROID_PACKAGE_NAME "${KOMARO_ANDROID_PACKAGE_NAME}"
 )
 
 target_link_libraries(komaro_qml_mobile PRIVATE
@@ -91,4 +99,33 @@ if(NOT ANDROID)
     else()
         message(WARNING "windeployqt not found under ${_qt6_bin_dir}; Qt runtime dependencies will not be deployed automatically")
     endif()
+endif()
+
+# `cmake --build <preset> --target install-apk` / `launch-apk` / `uninstall-apk`
+# wrap the adb commands documented in README.md's "Install & run on a real
+# device" section. ANDROID_SDK_ROOT is already a preset cache variable, so
+# these work unmodified on any host's Android preset.
+if(ANDROID)
+    set(_android_apk_path "${CMAKE_BINARY_DIR}/android-build/build/outputs/apk/debug/android-build-debug.apk")
+    set(_android_package "${KOMARO_ANDROID_PACKAGE_NAME}")
+
+    add_custom_target(install-apk
+        COMMAND "${ANDROID_SDK_ROOT}/platform-tools/adb" install -r "${_android_apk_path}"
+        COMMENT "Installing ${_android_apk_path} onto the connected Android device"
+    )
+    add_dependencies(install-apk apk)
+
+    add_custom_target(launch-apk
+        COMMAND "${ANDROID_SDK_ROOT}/platform-tools/adb" shell am start
+                -n "${_android_package}/org.qtproject.qt.android.bindings.QtActivity"
+        COMMENT "Launching ${_android_package} on the connected Android device"
+    )
+
+    # Useful when switching a device between differently-signed builds of
+    # this package (e.g. built on another machine) - adb install then fails
+    # with INSTALL_FAILED_UPDATE_INCOMPATIBLE until the old one is removed.
+    add_custom_target(uninstall-apk
+        COMMAND "${ANDROID_SDK_ROOT}/platform-tools/adb" uninstall "${_android_package}"
+        COMMENT "Uninstalling ${_android_package} from the connected Android device"
+    )
 endif()
