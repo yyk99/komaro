@@ -77,6 +77,24 @@ TEST(ChartControllerTest, LoadDefaultsBlankMeasurementToSensor)
     EXPECT_TRUE(server.lastRequestLine().contains(QStringLiteral("FROM%20sensor")));
 }
 
+TEST(ChartControllerTest, LoadRemembersMeasurementAtFrontOfRecentMeasurements)
+{
+    FakeHttpServer server;
+    server.respondWith(200, R"({"results":[]})");
+
+    // A name unlikely to already be present in this machine's persisted
+    // QSettings, so the assertion doesn't depend on prior test/app runs.
+    const QString measurement = QStringLiteral("chartcontrollertest_unique_measurement");
+
+    ChartController controller;
+    controller.load(QStringLiteral("127.0.0.1"), measurement, QStringLiteral("1h"),
+                     /*window=*/10, server.port());
+
+    ASSERT_TRUE(waitForUpdate(controller));
+    ASSERT_FALSE(controller.recentMeasurements().isEmpty());
+    EXPECT_EQ(controller.recentMeasurements().first(), measurement);
+}
+
 TEST(ChartControllerTest, LoadClearsPointsAndReportsErrorOnFailure)
 {
     FakeHttpServer server;

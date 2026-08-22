@@ -21,6 +21,7 @@ ApplicationWindow {
         category: "chart"
         property alias timeRangeIndex: timeRangeCombo.currentIndex
         property alias useFahrenheit: unitsSwitch.checked
+        property alias smoothingWindow: windowSpin.value
     }
 
     menuBar: MenuBar {
@@ -38,7 +39,7 @@ ApplicationWindow {
 
     function reloadChart() {
         if (connectionManager.currentHost.length > 0) {
-            chartController.load(connectionManager.currentHost, measurementField.text,
+            chartController.load(connectionManager.currentHost, measurementCombo.editText,
                                   timeRangeCombo.currentText, windowSpin.value)
         }
     }
@@ -53,11 +54,18 @@ ApplicationWindow {
             spacing: 8
 
             Label { text: qsTr("Measurement:") }
-            TextField {
-                id: measurementField
-                text: "sensor"
-                Layout.preferredWidth: 120
-                onEditingFinished: reloadChart()
+            ComboBox {
+                id: measurementCombo
+                Layout.preferredWidth: 140
+                editable: true
+                inputMethodHints: Qt.ImhNoAutoUppercase
+                model: chartController.recentMeasurements
+                onAccepted: reloadChart()
+                onActivated: reloadChart()
+                Component.onCompleted: {
+                    editText = chartController.recentMeasurements.length > 0
+                            ? chartController.recentMeasurements[0] : "sensor"
+                }
             }
             Label { text: qsTr("Range:") }
             ComboBox {

@@ -4,7 +4,7 @@
 
 - [x] Wire the Connect dialog's host field to `InfluxDbClient`, with a recent-server history (`ConnectionManager`, persisted via `QSettings`)
 - [x] Add unit/integration coverage for `InfluxDbClient` itself (query building, plus a `QTcpServer`-backed fake HTTP server exercising the real success/InfluxDB-error/connection-refused paths)
-- [ ] `ConnectionManager`'s "connect" is just a one-shot `SELECT ... FROM sensor WHERE time > now() - 1h` used as a connectivity probe; revisit once real querying/measurement selection exists
+- [x] `ConnectionManager`'s old one-shot connectivity probe is gone; `ChartController` does real querying now, with a most-recently-used measurement list (editable `ComboBox`, persisted via `QSettings`, same MRU logic as `recentServers`)
 
 ## Plotting
 
