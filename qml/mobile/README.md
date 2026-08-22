@@ -86,6 +86,7 @@ Then unplug and replug the device (safest way to force re-enumeration under the 
    ```
    cmake --build build/<android-preset> --target install-apk   # rebuilds the apk if stale, then installs it
    cmake --build build/<android-preset> --target launch-apk
+   cmake --build build/<android-preset> --target uninstall-apk   # e.g. before installing a build signed on another machine
    ```
 5. To sanity-check without touching the device: `adb shell pidof io.github.yyk99.komaro` (confirms it's still running) and `adb shell screencap -p /sdcard/screen.png && adb pull /sdcard/screen.png` (grab a screenshot). If running these from Git Bash, prefix with `MSYS_NO_PATHCONV=1` — otherwise it mangles the device-side `/sdcard/...` path into a Windows path.
 

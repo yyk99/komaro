@@ -101,10 +101,10 @@ if(NOT ANDROID)
     endif()
 endif()
 
-# `cmake --build <preset> --target install-apk` / `launch-apk` wrap the adb
-# commands documented in README.md's "Install & run on a real device"
-# section. ANDROID_SDK_ROOT is already a preset cache variable, so these
-# work unmodified on any host's Android preset.
+# `cmake --build <preset> --target install-apk` / `launch-apk` / `uninstall-apk`
+# wrap the adb commands documented in README.md's "Install & run on a real
+# device" section. ANDROID_SDK_ROOT is already a preset cache variable, so
+# these work unmodified on any host's Android preset.
 if(ANDROID)
     set(_android_apk_path "${CMAKE_BINARY_DIR}/android-build/build/outputs/apk/debug/android-build-debug.apk")
     set(_android_package "${KOMARO_ANDROID_PACKAGE_NAME}")
@@ -119,5 +119,13 @@ if(ANDROID)
         COMMAND "${ANDROID_SDK_ROOT}/platform-tools/adb" shell am start
                 -n "${_android_package}/org.qtproject.qt.android.bindings.QtActivity"
         COMMENT "Launching ${_android_package} on the connected Android device"
+    )
+
+    # Useful when switching a device between differently-signed builds of
+    # this package (e.g. built on another machine) - adb install then fails
+    # with INSTALL_FAILED_UPDATE_INCOMPATIBLE until the old one is removed.
+    add_custom_target(uninstall-apk
+        COMMAND "${ANDROID_SDK_ROOT}/platform-tools/adb" uninstall "${_android_package}"
+        COMMENT "Uninstalling ${_android_package} from the connected Android device"
     )
 endif()
