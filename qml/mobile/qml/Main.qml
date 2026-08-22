@@ -48,7 +48,7 @@ ApplicationWindow {
 
     Drawer {
         id: drawer
-        width: Math.min(window.width * 0.75, 320)
+        width: Math.min(window.width * 0.6, 220)
         height: window.height
 
         ColumnLayout {
@@ -58,6 +58,7 @@ ApplicationWindow {
             ItemDelegate {
                 text: appActions.connectAction.text
                 Layout.fillWidth: true
+                Layout.preferredHeight: 40
                 onClicked: {
                     drawer.close()
                     appActions.connectAction.trigger()
@@ -66,6 +67,7 @@ ApplicationWindow {
             ItemDelegate {
                 text: appActions.aboutAction.text
                 Layout.fillWidth: true
+                Layout.preferredHeight: 40
                 onClicked: {
                     drawer.close()
                     appActions.aboutAction.trigger()
@@ -74,10 +76,15 @@ ApplicationWindow {
             ItemDelegate {
                 text: appActions.exitAction.text
                 Layout.fillWidth: true
+                Layout.preferredHeight: 40
                 onClicked: {
                     drawer.close()
                     appActions.exitAction.trigger()
                 }
+            }
+            Item {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
             }
         }
     }
