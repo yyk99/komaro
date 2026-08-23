@@ -96,18 +96,6 @@ ApplicationWindow {
                 }
             }
             ItemDelegate {
-                text: appActions.aboutAction.text
-                icon.source: aboutIconSource
-                icon.width: 20
-                icon.height: 20
-                Layout.fillWidth: true
-                Layout.preferredHeight: 40
-                onClicked: {
-                    drawer.close()
-                    appActions.aboutAction.trigger()
-                }
-            }
-            ItemDelegate {
                 text: appActions.settingsAction.text
                 icon.source: settingsIconSource
                 icon.width: 20
@@ -134,6 +122,18 @@ ApplicationWindow {
             Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+            }
+            ItemDelegate {
+                text: appActions.aboutAction.text
+                icon.source: aboutIconSource
+                icon.width: 20
+                icon.height: 20
+                Layout.fillWidth: true
+                Layout.preferredHeight: 40
+                onClicked: {
+                    drawer.close()
+                    appActions.aboutAction.trigger()
+                }
             }
         }
     }
