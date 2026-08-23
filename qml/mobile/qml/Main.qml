@@ -45,6 +45,14 @@ ApplicationWindow {
         property alias keepScreenOn: keepScreenOnSwitch.checked
         property alias autoRefreshEnabled: autoRefreshSwitch.checked
         property alias autoRefreshIntervalMin: autoRefreshIntervalSpin.value
+        property alias autoConnect: autoConnectSwitch.checked
+    }
+
+    Component.onCompleted: {
+        if (autoConnectSwitch.checked && connectionManager.recentServers.length > 0) {
+            connectionManager.connectToServer(connectionManager.recentServers[0])
+            reloadChart()
+        }
     }
 
     Timer {
@@ -275,6 +283,11 @@ ApplicationWindow {
                     to: 120
                     value: 5
                 }
+            }
+
+            Switch {
+                id: autoConnectSwitch
+                text: qsTr("Auto connect")
             }
         }
     }
