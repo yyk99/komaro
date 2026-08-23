@@ -18,12 +18,14 @@ ApplicationWindow {
         id: appActions
         onConnectRequested: connectDialog.open()
         onAboutRequested: aboutDialog.open()
+        onSettingsRequested: settingsDialog.open()
     }
 
-    // Inline data-URI icons (link/info/logout) since the project has no
+    // Inline data-URI icons (link/sliders/info/logout) since the project has no
     // bundled icon asset pipeline; drawn in white to match Material.Dark text.
     readonly property string connectIconSource: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='2' y='7' width='10' height='10' rx='5' fill='none' stroke='white' stroke-width='2'/><rect x='12' y='7' width='10' height='10' rx='5' fill='none' stroke='white' stroke-width='2'/></svg>"
     readonly property string aboutIconSource: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10' fill='none' stroke='white' stroke-width='2'/><circle cx='12' cy='7.5' r='1.3' fill='white'/><rect x='10.8' y='10.5' width='2.4' height='7' rx='1.2' fill='white'/></svg>"
+    readonly property string settingsIconSource: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><line x1='4' y1='6' x2='20' y2='6' stroke='white' stroke-width='2' stroke-linecap='round'/><circle cx='9' cy='6' r='2' fill='white'/><line x1='4' y1='12' x2='20' y2='12' stroke='white' stroke-width='2' stroke-linecap='round'/><circle cx='15' cy='12' r='2' fill='white'/><line x1='4' y1='18' x2='20' y2='18' stroke='white' stroke-width='2' stroke-linecap='round'/><circle cx='9' cy='18' r='2' fill='white'/></svg>"
     readonly property string exitIconSource: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/><path d='M13 8l4 4-4 4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/><line x1='8' y1='12' x2='20' y2='12' stroke='white' stroke-width='2' stroke-linecap='round'/></svg>"
 
     Settings {
@@ -31,6 +33,11 @@ ApplicationWindow {
         property alias timeRangeIndex: timeRangeCombo.currentIndex
         property alias useFahrenheit: unitsSwitch.checked
         property alias smoothingWindow: windowSpin.value
+    }
+
+    Settings {
+        category: "app"
+        property alias keepScreenOn: keepScreenOnSwitch.checked
     }
 
     header: ToolBar {
@@ -83,6 +90,18 @@ ApplicationWindow {
                 onClicked: {
                     drawer.close()
                     appActions.aboutAction.trigger()
+                }
+            }
+            ItemDelegate {
+                text: appActions.settingsAction.text
+                icon.source: settingsIconSource
+                icon.width: 20
+                icon.height: 20
+                Layout.fillWidth: true
+                Layout.preferredHeight: 40
+                onClicked: {
+                    drawer.close()
+                    appActions.settingsAction.trigger()
                 }
             }
             ItemDelegate {
@@ -206,6 +225,24 @@ ApplicationWindow {
             Label { text: qsTr("Komaro Sensor Viewer") }
             Label { text: qsTr("Mobile-look QML app") }
             Label { text: qsTr("Built: %1").arg(appBuildTimestamp) }
+        }
+    }
+
+    Dialog {
+        id: settingsDialog
+        title: qsTr("Settings")
+        anchors.centerIn: parent
+        modal: true
+        standardButtons: Dialog.Ok
+
+        ColumnLayout {
+            spacing: 4
+
+            Switch {
+                id: keepScreenOnSwitch
+                text: qsTr("Keep screen on")
+                onCheckedChanged: screenWakeLock.keepScreenOn = checked
+            }
         }
     }
 
