@@ -38,6 +38,15 @@ ApplicationWindow {
     Settings {
         category: "app"
         property alias keepScreenOn: keepScreenOnSwitch.checked
+        property alias autoRefreshEnabled: autoRefreshSwitch.checked
+        property alias autoRefreshIntervalMin: autoRefreshIntervalSpin.value
+    }
+
+    Timer {
+        interval: autoRefreshIntervalSpin.value * 60000
+        running: autoRefreshSwitch.checked && connectionManager.currentHost.length > 0
+        repeat: true
+        onTriggered: reloadChart()
     }
 
     header: ToolBar {
@@ -242,6 +251,24 @@ ApplicationWindow {
                 id: keepScreenOnSwitch
                 text: qsTr("Keep screen on")
                 onCheckedChanged: screenWakeLock.keepScreenOn = checked
+            }
+
+            Switch {
+                id: autoRefreshSwitch
+                text: qsTr("Auto refresh")
+            }
+
+            RowLayout {
+                spacing: 8
+                enabled: autoRefreshSwitch.checked
+
+                Label { text: qsTr("Interval (min):") }
+                SpinBox {
+                    id: autoRefreshIntervalSpin
+                    from: 1
+                    to: 120
+                    value: 5
+                }
             }
         }
     }
