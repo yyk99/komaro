@@ -13,6 +13,7 @@ ApplicationWindow {
     title: qsTr("Komaro Sensor Viewer")
 
     Material.theme: Material.Dark
+    Material.accent: Material.Blue
 
     AppActions {
         id: appActions
