@@ -5,6 +5,7 @@
 
 #include "komaro/core/ChartController.h"
 #include "komaro/core/ConnectionManager.h"
+#include "ScreenWakeLock.h"
 
 int main(int argc, char *argv[])
 {
@@ -30,6 +31,9 @@ int main(int argc, char *argv[])
 
     auto *chartController = new komaro::core::ChartController(&app);
     engine.rootContext()->setContextProperty("chartController", chartController);
+
+    auto *screenWakeLock = new komaro::mobile::ScreenWakeLock(&app);
+    engine.rootContext()->setContextProperty("screenWakeLock", screenWakeLock);
 
     // __DATE__/__TIME__ reflect when this translation unit was last compiled,
     // not necessarily the whole app - fine for an About-dialog build stamp,

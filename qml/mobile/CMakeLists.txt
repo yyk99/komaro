@@ -31,6 +31,8 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../core ${CMAKE_CURRENT_BINARY_DIR}
 
 qt_add_executable(komaro_qml_mobile
     src/main.cpp
+    src/ScreenWakeLock.h
+    src/ScreenWakeLock.cpp
 )
 
 # `cmake --build build/<preset> -t touch` (or --target touch) forces
