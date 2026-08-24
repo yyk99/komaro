@@ -10,6 +10,19 @@ Item {
     property var points: []
     property bool useFahrenheit: false
 
+    // When enabled, the corresponding axis uses [min, max] verbatim instead
+    // of auto-scaling to the data (paddedRange()) - useful for keeping the
+    // y-axis stable across refreshes/measurements. Temperature bounds are
+    // always in Celsius, matching how `points` stores temperatureC; the
+    // caller is responsible for converting from whatever unit its own UI
+    // collects the values in.
+    property bool fixedTempRangeEnabled: false
+    property real fixedTempMinC: 0
+    property real fixedTempMaxC: 40
+    property bool fixedHumidRangeEnabled: false
+    property real fixedHumidMin: 0
+    property real fixedHumidMax: 100
+
     readonly property color temperatureColor: "#e06666"
     readonly property color humidityColor: "#6fa8dc"
 
@@ -63,8 +76,12 @@ Item {
             const maxTime = Math.max.apply(null, times)
             const timeSpan = Math.max(1, maxTime - minTime)
 
-            const tempRange = paddedRange(Math.min.apply(null, temps), Math.max.apply(null, temps))
-            const humidRange = paddedRange(Math.min.apply(null, humids), Math.max.apply(null, humids))
+            const tempRange = root.fixedTempRangeEnabled
+                    ? [root.fixedTempMinC, root.fixedTempMaxC]
+                    : paddedRange(Math.min.apply(null, temps), Math.max.apply(null, temps))
+            const humidRange = root.fixedHumidRangeEnabled
+                    ? [root.fixedHumidMin, root.fixedHumidMax]
+                    : paddedRange(Math.min.apply(null, humids), Math.max.apply(null, humids))
 
             function xFor(t) { return marginLeft + ((t - minTime) / timeSpan) * plotWidth }
             function yFor(v, range) {
@@ -142,4 +159,10 @@ Item {
 
     onPointsChanged: canvas.requestPaint()
     onUseFahrenheitChanged: canvas.requestPaint()
+    onFixedTempRangeEnabledChanged: canvas.requestPaint()
+    onFixedTempMinCChanged: canvas.requestPaint()
+    onFixedTempMaxCChanged: canvas.requestPaint()
+    onFixedHumidRangeEnabledChanged: canvas.requestPaint()
+    onFixedHumidMinChanged: canvas.requestPaint()
+    onFixedHumidMaxChanged: canvas.requestPaint()
 }
