@@ -15,19 +15,34 @@ ApplicationWindow {
         id: appActions
         onConnectRequested: connectDialog.open()
         onAboutRequested: aboutDialog.open()
+        onSettingsRequested: settingsDialog.open()
     }
+
+    // Fixed temperature range bounds, always stored in Celsius (matching
+    // SensorChart.points' temperatureC) regardless of the °C/°F toggle -
+    // the Settings dialog's spin boxes convert to/from whatever unit is
+    // currently displayed.
+    property real fixedTempMinC: 0
+    property real fixedTempMaxC: 40
 
     Settings {
         category: "chart"
         property alias timeRangeIndex: timeRangeCombo.currentIndex
         property alias useFahrenheit: unitsSwitch.checked
         property alias smoothingWindow: windowSpin.value
+        property alias fixedTempRangeEnabled: fixedTempRangeSwitch.checked
+        property alias fixedTempMinC: window.fixedTempMinC
+        property alias fixedTempMaxC: window.fixedTempMaxC
+        property alias fixedHumidRangeEnabled: fixedHumidRangeSwitch.checked
+        property alias fixedHumidMin: humidMinSpin.value
+        property alias fixedHumidMax: humidMaxSpin.value
     }
 
     menuBar: MenuBar {
         Menu {
             title: qsTr("&File")
             MenuItem { action: appActions.connectAction }
+            MenuItem { action: appActions.settingsAction }
             MenuSeparator {}
             MenuItem { action: appActions.exitAction }
         }
@@ -106,6 +121,12 @@ ApplicationWindow {
                 anchors.margins: 8
                 points: chartController.points
                 useFahrenheit: unitsSwitch.checked
+                fixedTempRangeEnabled: fixedTempRangeSwitch.checked
+                fixedTempMinC: window.fixedTempMinC
+                fixedTempMaxC: window.fixedTempMaxC
+                fixedHumidRangeEnabled: fixedHumidRangeSwitch.checked
+                fixedHumidMin: humidMinSpin.value
+                fixedHumidMax: humidMaxSpin.value
             }
 
             Label {
@@ -132,6 +153,80 @@ ApplicationWindow {
             Label { text: qsTr("Komaro Sensor Viewer") }
             Label { text: qsTr("Desktop QML app") }
             Label { text: qsTr("Built: %1").arg(appBuildTimestamp) }
+        }
+    }
+
+    Dialog {
+        id: settingsDialog
+        title: qsTr("Settings")
+        anchors.centerIn: parent
+        modal: true
+        standardButtons: Dialog.Ok
+
+        ColumnLayout {
+            spacing: 4
+
+            Switch {
+                id: fixedTempRangeSwitch
+                text: qsTr("Fixed temperature range")
+            }
+
+            RowLayout {
+                spacing: 8
+                enabled: fixedTempRangeSwitch.checked
+
+                Label { text: qsTr("Min:") }
+                SpinBox {
+                    id: tempMinSpin
+                    from: unitsSwitch.checked ? -58 : -50
+                    to: unitsSwitch.checked ? 302 : 150
+                    value: unitsSwitch.checked
+                            ? Math.round(window.fixedTempMinC * 9 / 5 + 32)
+                            : Math.round(window.fixedTempMinC)
+                    onValueModified: {
+                        window.fixedTempMinC = unitsSwitch.checked ? (value - 32) * 5 / 9 : value
+                    }
+                }
+                Label { text: qsTr("Max:") }
+                SpinBox {
+                    id: tempMaxSpin
+                    from: unitsSwitch.checked ? -58 : -50
+                    to: unitsSwitch.checked ? 302 : 150
+                    value: unitsSwitch.checked
+                            ? Math.round(window.fixedTempMaxC * 9 / 5 + 32)
+                            : Math.round(window.fixedTempMaxC)
+                    onValueModified: {
+                        window.fixedTempMaxC = unitsSwitch.checked ? (value - 32) * 5 / 9 : value
+                    }
+                }
+                Label { text: unitsSwitch.checked ? qsTr("°F") : qsTr("°C") }
+            }
+
+            Switch {
+                id: fixedHumidRangeSwitch
+                text: qsTr("Fixed humidity range")
+            }
+
+            RowLayout {
+                spacing: 8
+                enabled: fixedHumidRangeSwitch.checked
+
+                Label { text: qsTr("Min:") }
+                SpinBox {
+                    id: humidMinSpin
+                    from: 0
+                    to: 100
+                    value: 0
+                }
+                Label { text: qsTr("Max:") }
+                SpinBox {
+                    id: humidMaxSpin
+                    from: 0
+                    to: 100
+                    value: 100
+                }
+                Label { text: qsTr("%") }
+            }
         }
     }
 

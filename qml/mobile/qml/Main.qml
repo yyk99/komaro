@@ -33,11 +33,24 @@ ApplicationWindow {
     readonly property string hamburgerIconSource: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><line x1='3' y1='6' x2='21' y2='6' stroke='white' stroke-width='2' stroke-linecap='round'/><line x1='3' y1='12' x2='21' y2='12' stroke='white' stroke-width='2' stroke-linecap='round'/><line x1='3' y1='18' x2='21' y2='18' stroke='white' stroke-width='2' stroke-linecap='round'/></svg>"
     readonly property string exitIconSource: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/><path d='M13 8l4 4-4 4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/><line x1='8' y1='12' x2='20' y2='12' stroke='white' stroke-width='2' stroke-linecap='round'/></svg>"
 
+    // Fixed temperature range bounds, always stored in Celsius (matching
+    // SensorChart.points' temperatureC) regardless of the °C/°F toggle -
+    // the Settings dialog's spin boxes convert to/from whatever unit is
+    // currently displayed.
+    property real fixedTempMinC: 0
+    property real fixedTempMaxC: 40
+
     Settings {
         category: "chart"
         property alias timeRangeIndex: timeRangeCombo.currentIndex
         property alias useFahrenheit: unitsSwitch.checked
         property alias smoothingWindow: windowSpin.value
+        property alias fixedTempRangeEnabled: fixedTempRangeSwitch.checked
+        property alias fixedTempMinC: window.fixedTempMinC
+        property alias fixedTempMaxC: window.fixedTempMaxC
+        property alias fixedHumidRangeEnabled: fixedHumidRangeSwitch.checked
+        property alias fixedHumidMin: humidMinSpin.value
+        property alias fixedHumidMax: humidMaxSpin.value
     }
 
     Settings {
@@ -222,6 +235,12 @@ ApplicationWindow {
                 anchors.margins: 8
                 points: chartController.points
                 useFahrenheit: unitsSwitch.checked
+                fixedTempRangeEnabled: fixedTempRangeSwitch.checked
+                fixedTempMinC: window.fixedTempMinC
+                fixedTempMaxC: window.fixedTempMaxC
+                fixedHumidRangeEnabled: fixedHumidRangeSwitch.checked
+                fixedHumidMin: humidMinSpin.value
+                fixedHumidMax: humidMaxSpin.value
             }
 
             Label {
@@ -288,6 +307,68 @@ ApplicationWindow {
             Switch {
                 id: autoConnectSwitch
                 text: qsTr("Auto connect")
+            }
+
+            Switch {
+                id: fixedTempRangeSwitch
+                text: qsTr("Fixed temperature range")
+            }
+
+            RowLayout {
+                spacing: 8
+                enabled: fixedTempRangeSwitch.checked
+
+                Label { text: qsTr("Min:") }
+                SpinBox {
+                    id: tempMinSpin
+                    from: unitsSwitch.checked ? -58 : -50
+                    to: unitsSwitch.checked ? 302 : 150
+                    value: unitsSwitch.checked
+                            ? Math.round(window.fixedTempMinC * 9 / 5 + 32)
+                            : Math.round(window.fixedTempMinC)
+                    onValueModified: {
+                        window.fixedTempMinC = unitsSwitch.checked ? (value - 32) * 5 / 9 : value
+                    }
+                }
+                Label { text: qsTr("Max:") }
+                SpinBox {
+                    id: tempMaxSpin
+                    from: unitsSwitch.checked ? -58 : -50
+                    to: unitsSwitch.checked ? 302 : 150
+                    value: unitsSwitch.checked
+                            ? Math.round(window.fixedTempMaxC * 9 / 5 + 32)
+                            : Math.round(window.fixedTempMaxC)
+                    onValueModified: {
+                        window.fixedTempMaxC = unitsSwitch.checked ? (value - 32) * 5 / 9 : value
+                    }
+                }
+                Label { text: unitsSwitch.checked ? qsTr("°F") : qsTr("°C") }
+            }
+
+            Switch {
+                id: fixedHumidRangeSwitch
+                text: qsTr("Fixed humidity range")
+            }
+
+            RowLayout {
+                spacing: 8
+                enabled: fixedHumidRangeSwitch.checked
+
+                Label { text: qsTr("Min:") }
+                SpinBox {
+                    id: humidMinSpin
+                    from: 0
+                    to: 100
+                    value: 0
+                }
+                Label { text: qsTr("Max:") }
+                SpinBox {
+                    id: humidMaxSpin
+                    from: 0
+                    to: 100
+                    value: 100
+                }
+                Label { text: qsTr("%") }
             }
         }
     }
