@@ -131,6 +131,24 @@ else()
     )
 endif()
 
+if(UNIX AND NOT APPLE)
+    # Desktop menu integration: a .desktop entry (so the app shows up in
+    # GNOME's "Show Applications" grid, application launchers, etc.) plus its
+    # icon under the hicolor theme's "scalable" bucket - Icon=komaro-desktop
+    # in the .desktop file is a theme-relative name, not a path, so it's
+    # looked up by icon loaders against every installed theme's directories
+    # (falling back to hicolor) rather than needing an absolute path. Relies
+    # on ~/.local/bin being on PATH for Exec=komaro_qml_desktop to resolve -
+    # true by default on Ubuntu when installing to the linux-ubuntu preset's
+    # $env{HOME}/.local prefix.
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/komaro-desktop.desktop"
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications
+    )
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/icons/komaro-desktop.svg"
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps
+    )
+endif()
+
 qt_generate_deploy_app_script(
     TARGET komaro_qml_desktop
     OUTPUT_SCRIPT deploy_script
