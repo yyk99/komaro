@@ -1,0 +1,43 @@
+name: qml/core CI
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "qml/core/**"
+      - ".github/workflows/qml-core-ci.yml"
+  pull_request:
+    paths:
+      - "qml/core/**"
+      - ".github/workflows/qml-core-ci.yml"
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.8.1"
+          host: "linux"
+          target: "desktop"
+          cache: true
+
+      - name: Install build tools and GTest
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgtest-dev
+
+      - name: Configure
+        run: cmake -S qml/core -B build -G Ninja -DBUILD_TESTS=ON
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
