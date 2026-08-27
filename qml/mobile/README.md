@@ -19,6 +19,8 @@ ctest --preset windows-msvc-debug
 
 Executables land in `build/windows-msvc/bin/<Config>/`; `windeployqt` runs automatically as a post-build step.
 
+`cmake --install build/<preset> --prefix <dir>` (desktop-prototype builds only - not available for Android, which packages via the `apk` target instead) produces a redistributable copy the same way `../desktop`'s install does, including the same Linux `libexec/` + wrapper-script layout - see `../KB.md` for why that's needed.
+
 ## Build (Android)
 
 ### Windows (`android-arm64` preset)
