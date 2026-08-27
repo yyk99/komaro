@@ -2,6 +2,18 @@
 
 Notes on QML/Qt topics for this project that don't belong in `README.md` (which covers what the app *is*, not how to work on it).
 
+## Why `desktop`'s Linux install needs a wrapper script (RPATH doesn't reach dlopen'd QML plugins)
+
+`desktop/CMakeLists.txt`'s install step deploys a self-contained Qt runtime via `qt_generate_deploy_app_script`/`qt6_deploy_runtime_dependencies`, which sets the installed executable's RPATH to `$ORIGIN:$ORIGIN/../lib` so it finds its bundled Qt libraries instead of any system Qt. That's enough for the executable's own *direct* dependencies (`libQt6Core.so`, etc.) - but not for the QML modules it imports (`QtQuick`, `QtQuick.Controls`, ...), which get pulled in as separate `.so` plugin files that `QQmlEngine` loads via `dlopen()` at runtime, not linked into the executable at build time.
+
+**The gap this causes:** an RPATH/RUNPATH set on the main executable only governs resolution of *that binary's own* `DT_NEEDED` entries - it is not inherited by a library the process later `dlopen()`s, so that library's *own* transitive dependencies fall back to the system's normal search path. On this Ubuntu dev box that's a real collision, not a hypothetical one: Ubuntu ships its own `libQt6QuickTemplates2.so.6` system package, a different (ABI-incompatible) build than ours. Installing to a plain `~/.local` and running the binary directly loaded `QtQuick.Controls`'s plugin fine, but *that plugin's* dependency on `libQt6QuickTemplates2.so.6` resolved to the system copy instead of the bundled one, crashing with an undefined-symbol error the first time a `Control` was instantiated - a failure mode that only shows up once you actually exercise a QML type from the affected module, not at plain startup.
+
+`LD_LIBRARY_PATH`, unlike RPATH/RUNPATH, applies to *every* `dlopen()` in the process, so it's the fix that actually reaches the QML plugins' own dependencies. Rather than requiring the user to set it themselves, the install step installs the real binary to `libexec/komaro_qml_desktop` and puts a thin `bin/komaro_qml_desktop` wrapper script in its place that sets `LD_LIBRARY_PATH` relative to itself before `exec`ing the real one - a standard pattern for self-contained Linux app installs.
+
+**Related gap, same root cause:** `qt6_deploy_runtime_dependencies` (which copies shared-library dependencies) only scans the *executable's* dependency graph - it doesn't know about QML plugins deployed by a separate `qt6_deploy_qml_imports` call, since those plugin files don't exist on disk yet when the first scan runs. Fixed by capturing `qt6_deploy_qml_imports`'s `PLUGINS_FOUND` output and feeding it back into a second `qt6_deploy_runtime_dependencies` call's `ADDITIONAL_MODULES` argument, so the plugins' own dependencies (like the `QuickTemplates2` example above) get scanned and copied too - see the `install(CODE ...)` block in `desktop/CMakeLists.txt`.
+
+**How this was caught:** by actually installing to a scratch prefix and running the result (`env -i HOME=<scratch> QT_QPA_PLATFORM=offscreen <installed-binary>`) rather than trusting a clean `cmake --install` log - the missing-QML-imports gap surfaced as `module ... is not installed`, and the missing-transitive-dependency gap only surfaced one layer deeper, as an undefined-symbol crash, once the first was fixed.
+
 ## Visually verifying a QML component without running the full app
 
 Useful when a change touches rendering (e.g. a `Canvas`-based chart) and you want to confirm actual pixels, not just that the code compiles.

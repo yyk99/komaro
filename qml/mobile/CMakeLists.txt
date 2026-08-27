@@ -103,6 +103,53 @@ if(NOT ANDROID)
     endif()
 endif()
 
+# `cmake --install build/<preset> --prefix <dir>` for the desktop-prototype
+# build only - there's no equivalent for an Android build, which packages
+# via the "apk" target instead (see qml/KB.md for the desktop install's
+# mechanics; the same reasoning and the RPATH/dlopen wrapper-script fix
+# apply here unchanged, since this shell also imports QtQuick.Controls).
+if(NOT ANDROID)
+    include(GNUInstallDirs)
+
+    if(UNIX AND NOT APPLE)
+        install(TARGETS komaro_qml_mobile
+            RUNTIME DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        )
+
+        file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/komaro_qml_mobile-wrapper.sh" [[#!/bin/sh
+here="$(cd "$(dirname "$0")" && pwd)"
+exec env LD_LIBRARY_PATH="$here/../lib:$LD_LIBRARY_PATH" "$here/../libexec/komaro_qml_mobile" "$@"
+]])
+        install(PROGRAMS "${CMAKE_CURRENT_BINARY_DIR}/komaro_qml_mobile-wrapper.sh"
+            DESTINATION ${CMAKE_INSTALL_BINDIR}
+            RENAME komaro_qml_mobile
+        )
+    else()
+        install(TARGETS komaro_qml_mobile
+            BUNDLE DESTINATION .
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        )
+    endif()
+
+    qt_generate_deploy_app_script(
+        TARGET komaro_qml_mobile
+        OUTPUT_SCRIPT deploy_script
+        NO_UNSUPPORTED_PLATFORM_ERROR
+    )
+    install(SCRIPT ${deploy_script})
+
+    install(CODE [[
+qt6_deploy_qml_imports(TARGET komaro_qml_mobile PLUGINS_FOUND qml_plugin_libs)
+qt6_deploy_runtime_dependencies(
+    EXECUTABLE "$<TARGET_FILE:komaro_qml_mobile>"
+    ADDITIONAL_MODULES ${qml_plugin_libs}
+    NO_TRANSLATIONS
+)
+]])
+endif()
+
 # `cmake --build <preset> --target install-apk` / `launch-apk` / `uninstall-apk`
 # wrap the adb commands documented in README.md's "Install & run on a real
 # device" section. ANDROID_SDK_ROOT is already a preset cache variable, so
