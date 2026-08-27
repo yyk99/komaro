@@ -25,7 +25,8 @@
       "displayName": "Linux (Ubuntu x86_64, GCC, Qt 6.8.1)",
       "inherits": "linux-ubuntu-base",
       "cacheVariables": {
-        "CMAKE_PREFIX_PATH": "/home/yyk/Qt/6.8.1/gcc_64"
+        "CMAKE_PREFIX_PATH": "/home/yyk/Qt/6.8.1/gcc_64",
+        "CMAKE_INSTALL_PREFIX": "$env{HOME}/.local"
       }
     }
   ],
