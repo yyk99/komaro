@@ -26,6 +26,7 @@ jobs:
           version: "6.8.1"
           host: "linux"
           target: "desktop"
+          cache: true
 
       - name: Install build tools and GTest
         run: |
