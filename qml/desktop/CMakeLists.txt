@@ -83,3 +83,29 @@ if(WINDEPLOYQT_EXECUTABLE)
 else()
     message(WARNING "windeployqt not found under ${_qt6_bin_dir}; Qt runtime dependencies will not be deployed automatically")
 endif()
+
+# `cmake --install build/<preset> --prefix <dir>` installs the executable
+# (QML files are already embedded as Qt resources via qt_add_qml_module, so
+# there's nothing else of ours to install) plus deploys its Qt runtime
+# dependencies into the install tree via qt_generate_deploy_app_script. Unlike
+# the POST_BUILD windeployqt command above (Windows-only, since windeployqt
+# doesn't exist on Linux - see qml/README.md), this one works cross-platform:
+# on Linux it uses Qt's "generic deploy tool" instead, which resolves and
+# copies the actual shared library dependencies rather than shelling out to a
+# platform-specific deploy binary - verified by installing to a scratch
+# prefix and confirming `ldd` on the installed binary resolves everything
+# against the bundled lib/ dir, not the build tree's Qt.
+include(GNUInstallDirs)
+
+install(TARGETS komaro_qml_desktop
+    BUNDLE DESTINATION .
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+qt_generate_deploy_app_script(
+    TARGET komaro_qml_desktop
+    OUTPUT_SCRIPT deploy_script
+    NO_UNSUPPORTED_PLATFORM_ERROR
+)
+install(SCRIPT ${deploy_script})

@@ -40,3 +40,5 @@ ctest --preset windows-msvc-debug
 Executables land in `build/windows-msvc/bin/<Config>/`, libraries in `build/windows-msvc/lib/<Config>/`. After a successful build, `windeployqt` runs automatically as a post-build step, so `komaro_qml_desktop.exe` is self-contained (no manual PATH/deploy step needed).
 
 `desktop/vcpkg.json` (against the vcpkg instance at `G:\opt\vcpkg`) currently only pulls in `gtest`, needed to build `core`'s tests as part of this project; it isn't wired into `CMAKE_PREFIX_PATH`, so Qt itself is not built from source via vcpkg. Tests are gated by the `BUILD_TESTS` cache variable (default `ON`); pass `-DBUILD_TESTS=OFF` to skip them.
+
+`cmake --install build/<preset> --prefix <dir>` produces a redistributable copy of `komaro_qml_desktop` in `<dir>` - it deploys Qt's runtime dependencies into the install tree the same way the POST_BUILD step does for the build tree, using `windeployqt` on Windows and Qt's cross-platform "generic deploy tool" on Linux (so it isn't a Windows-only no-op like the POST_BUILD step is on Linux).
