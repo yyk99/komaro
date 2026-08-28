@@ -2,9 +2,6 @@
 build/
 __pycache__/
 *.log
-*.png
-# Except committed app icon assets (not generated plot/screenshot output)
-!qml/mobile/android/res/**/*.png
 .ipynb_checkpoints/
 .venv*/
 .vs/
