@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Komaro Sensor Viewer (Mobile)
+Comment=View temperature/humidity sensor data from InfluxDB (mobile-look desktop prototype)
+Exec=komaro_qml_mobile
+Icon=komaro-mobile
+Categories=Utility;
+Terminal=false
