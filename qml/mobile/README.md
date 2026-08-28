@@ -19,9 +19,11 @@ ctest --preset windows-msvc-debug
 
 Executables land in `build/windows-msvc/bin/<Config>/`; `windeployqt` runs automatically as a post-build step.
 
-`cmake --install build/<preset> --prefix <dir>` (desktop-prototype builds only - not available for Android, which packages via the `apk` target instead) produces a redistributable copy the same way `../desktop`'s install does, including the same Linux `libexec/` + wrapper-script layout - see `../KB.md` for why that's needed.
+`cmake --install build/<preset> --prefix <dir>` (desktop-prototype builds only - not available for Android, which packages via the `apk` target instead) produces a redistributable copy the same way `../desktop`'s install does, including the same Linux `libexec/` + wrapper-script layout - see `../KB.md` for why that's needed. It also registers a `komaro-mobile.desktop` menu entry and icon on Linux (`icons/komaro-mobile.svg`, a copy of `../desktop`'s icon), same as `../desktop`.
 
 ## Build (Android)
+
+The launcher icon (`android/res/mipmap-*/ic_launcher*.png`, rasterized from `../desktop`'s icon) and a matching `android:icon`/`android:roundIcon` on the `<application>` tag come from `android/AndroidManifest.xml` - a copy of Qt's own package template with just those two attributes added, wired in via `QT_ANDROID_PACKAGE_SOURCE_DIR` in `CMakeLists.txt`. Qt's default template sets neither attribute at all, so without this the app would show Android's generic default icon. `androiddeployqt` overlays `android/`'s contents on top of the generated template file-by-file, so this only needed forking the manifest (to add the two attributes) rather than the whole Gradle project.
 
 ### Windows (`android-arm64` preset)
 

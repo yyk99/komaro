@@ -2,7 +2,6 @@
 build/
 __pycache__/
 *.log
-*.png
 .ipynb_checkpoints/
 .venv*/
 .vs/

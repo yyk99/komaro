@@ -61,9 +61,16 @@ qt_add_qml_module(komaro_qml_mobile
 # over it fails with INSTALL_FAILED_UPDATE_INCOMPATIBLE (signature mismatch).
 set(KOMARO_ANDROID_PACKAGE_NAME "io.github.yyk99.komaro")
 
+# android/ is a copy of Qt's own package template (AndroidManifest.xml,
+# with android:icon/android:roundIcon added - Qt's default has neither
+# attribute at all - plus res/mipmap-*/ic_launcher*.png) - androiddeployqt
+# copies this directory on top of the generated template, overwriting only
+# the files present here, so the app gets our icon instead of Android's
+# generic default one without needing to fork the rest of the manifest.
 set_target_properties(komaro_qml_mobile PROPERTIES
     WIN32_EXECUTABLE TRUE
     QT_ANDROID_PACKAGE_NAME "${KOMARO_ANDROID_PACKAGE_NAME}"
+    QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android"
 )
 
 target_link_libraries(komaro_qml_mobile PRIVATE
@@ -148,6 +155,16 @@ qt6_deploy_runtime_dependencies(
     NO_TRANSLATIONS
 )
 ]])
+
+    if(UNIX AND NOT APPLE)
+        # Same desktop-menu integration as ../desktop - see qml/README.md.
+        install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/komaro-mobile.desktop"
+            DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications
+        )
+        install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/icons/komaro-mobile.svg"
+            DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps
+        )
+    endif()
 endif()
 
 # `cmake --build <preset> --target install-apk` / `launch-apk` / `uninstall-apk`
