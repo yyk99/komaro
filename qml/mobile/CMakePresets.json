@@ -10,13 +10,7 @@
       "binaryDir": "${sourceDir}/build/${presetName}"
     },
     {
-      "name": "linux-rpi-base",
-      "hidden": true,
-      "generator": "Ninja Multi-Config",
-      "binaryDir": "${sourceDir}/build/${presetName}"
-    },
-    {
-      "name": "linux-ubuntu-base",
+      "name": "linux-base",
       "hidden": true,
       "generator": "Ninja Multi-Config",
       "binaryDir": "${sourceDir}/build/${presetName}"
