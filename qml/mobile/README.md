@@ -19,6 +19,8 @@ ctest --preset windows-msvc-debug
 
 Executables land in `build/windows-msvc/bin/<Config>/`; `windeployqt` runs automatically as a post-build step.
 
+The window defaults to a phone-ish 411x891 size, but Qt's built-in `-qwindowgeometry <WxH>` command-line option (e.g. `komaro_qml_mobile -qwindowgeometry 1280x800`) overrides it at runtime - handy for previewing the UI at tablet proportions without touching `Main.qml`.
+
 `cmake --install build/<preset> --prefix <dir>` (desktop-prototype builds only - not available for Android, which packages via the `apk` target instead) produces a redistributable copy the same way `../desktop`'s install does, including the same Linux `libexec/` + wrapper-script layout - see `../KB.md` for why that's needed. It also registers a `komaro-mobile.desktop` menu entry and icon on Linux (`icons/komaro-mobile.svg`, a copy of `../desktop`'s icon), same as `../desktop`.
 
 ## Build (Android)
