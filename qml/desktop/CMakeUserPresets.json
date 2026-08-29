@@ -15,7 +15,7 @@
     {
       "name": "linux-rpi",
       "displayName": "Linux (Raspberry Pi, GCC, Qt 6.11.1 + system gtest)",
-      "inherits": "linux-rpi-base",
+      "inherits": "linux-base",
       "cacheVariables": {
         "CMAKE_PREFIX_PATH": "/home/yyk/Downloads/qt-everywhere-src-6.11.1/qtbase"
       }
@@ -23,7 +23,7 @@
     {
       "name": "linux-ubuntu",
       "displayName": "Linux (Ubuntu x86_64, GCC, Qt 6.8.1)",
-      "inherits": "linux-ubuntu-base",
+      "inherits": "linux-base",
       "cacheVariables": {
         "CMAKE_PREFIX_PATH": "/home/yyk/Qt/6.8.1/gcc_64",
         "CMAKE_INSTALL_PREFIX": "$env{HOME}/.local"
