@@ -38,6 +38,27 @@ ApplicationWindow {
         property alias fixedHumidMax: humidMaxSpin.value
     }
 
+    Settings {
+        category: "app"
+        property alias autoRefreshEnabled: autoRefreshSwitch.checked
+        property alias autoRefreshIntervalMin: autoRefreshIntervalSpin.value
+        property alias autoConnect: autoConnectSwitch.checked
+    }
+
+    Component.onCompleted: {
+        if (autoConnectSwitch.checked && connectionManager.recentServers.length > 0) {
+            connectionManager.connectToServer(connectionManager.recentServers[0])
+            reloadChart()
+        }
+    }
+
+    Timer {
+        interval: autoRefreshIntervalSpin.value * 60000
+        running: autoRefreshSwitch.checked && connectionManager.currentHost.length > 0
+        repeat: true
+        onTriggered: reloadChart()
+    }
+
     menuBar: MenuBar {
         Menu {
             title: qsTr("&File")
@@ -226,6 +247,29 @@ ApplicationWindow {
                     value: 100
                 }
                 Label { text: qsTr("%") }
+            }
+
+            Switch {
+                id: autoRefreshSwitch
+                text: qsTr("Auto refresh")
+            }
+
+            RowLayout {
+                spacing: 8
+                enabled: autoRefreshSwitch.checked
+
+                Label { text: qsTr("Interval (min):") }
+                SpinBox {
+                    id: autoRefreshIntervalSpin
+                    from: 1
+                    to: 120
+                    value: 5
+                }
+            }
+
+            Switch {
+                id: autoConnectSwitch
+                text: qsTr("Auto connect")
             }
         }
     }
