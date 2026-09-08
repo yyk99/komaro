@@ -73,7 +73,7 @@ Item {
 
             const marginLeft = 56
             const marginRight = 56
-            const marginTop = 28 + (nonEmptySeries.length + 2) * 16
+            const marginTop = 28 + 3 * 16
             const marginBottom = 40
             const plotWidth = Math.max(1, width - marginLeft - marginRight)
             const plotHeight = Math.max(1, height - marginTop - marginBottom)
@@ -159,31 +159,35 @@ Item {
                 drawLine(nonEmptySeries[s].points, "humidity", humidRange, root.humidityColor, dash)
             }
 
-            // Legend: one line per series, sampling its dash pattern so it
+            // Legend: one row, sampling each series' dash pattern so it
             // doubles as a key for "which dash style is which measurement".
             ctx.textAlign = "left"
             ctx.textBaseline = "top"
             ctx.font = "11px sans-serif"
+            const legendY = 4
+            let lx = marginLeft + 8
             for (let s = 0; s < nonEmptySeries.length; ++s) {
-                const ly = 4 + s * 16
                 const dash = root.dashPatterns[s % root.dashPatterns.length]
 
                 ctx.strokeStyle = "#cccccc"
                 ctx.lineWidth = 1.5
                 ctx.setLineDash(dash)
                 ctx.beginPath()
-                ctx.moveTo(marginLeft + 8, ly + 6)
-                ctx.lineTo(marginLeft + 32, ly + 6)
+                ctx.moveTo(lx, legendY + 6)
+                ctx.lineTo(lx + 24, legendY + 6)
                 ctx.stroke()
                 ctx.setLineDash([])
+                lx += 30
 
                 ctx.fillStyle = "#cccccc"
-                ctx.fillText(nonEmptySeries[s].measurement, marginLeft + 38, ly)
+                const label = nonEmptySeries[s].measurement
+                ctx.fillText(label, lx, legendY)
+                lx += ctx.measureText(label).width + 20
             }
 
             // Color key: which color is temperature vs. humidity, same as
             // the axis tick label colors above.
-            const colorKeyY = 4 + nonEmptySeries.length * 16
+            const colorKeyY = legendY + 16
             ctx.fillStyle = root.temperatureColor
             ctx.fillText(qsTr("Temperature (%1)").arg(root.useFahrenheit ? "F" : "C"), marginLeft + 8, colorKeyY)
             ctx.fillStyle = root.humidityColor
