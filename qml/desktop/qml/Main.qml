@@ -19,7 +19,7 @@ ApplicationWindow {
     }
 
     // Fixed temperature range bounds, always stored in Celsius (matching
-    // SensorChart.points' temperatureC) regardless of the °C/°F toggle -
+    // SensorChart.series' points' temperatureC) regardless of the °C/°F toggle -
     // the Settings dialog's spin boxes convert to/from whatever unit is
     // currently displayed.
     property real fixedTempMinC: 0
@@ -75,7 +75,7 @@ ApplicationWindow {
 
     function reloadChart() {
         if (connectionManager.currentHost.length > 0) {
-            chartController.load(connectionManager.currentHost, measurementCombo.editText,
+            chartController.load(connectionManager.currentHost, measurementSelect.selected,
                                   timeRangeCombo.currentText, windowSpin.value)
         }
     }
@@ -89,18 +89,15 @@ ApplicationWindow {
             Layout.margins: 8
             spacing: 8
 
-            Label { text: qsTr("Measurement:") }
-            ComboBox {
-                id: measurementCombo
-                Layout.preferredWidth: 140
-                editable: true
-                inputMethodHints: Qt.ImhNoAutoUppercase
-                model: chartController.recentMeasurements
-                onAccepted: reloadChart()
-                onActivated: reloadChart()
+            Label { text: qsTr("Sensors:") }
+            MultiMeasurementSelect {
+                id: measurementSelect
+                Layout.preferredWidth: 200
+                options: chartController.recentMeasurements
+                onSelectedChanged: reloadChart()
                 Component.onCompleted: {
-                    editText = chartController.recentMeasurements.length > 0
-                            ? chartController.recentMeasurements[0] : "sensor"
+                    selected = chartController.recentMeasurements.length > 0
+                            ? [chartController.recentMeasurements[0]] : ["sensor"]
                 }
             }
             Label { text: qsTr("Range:") }
@@ -140,7 +137,7 @@ ApplicationWindow {
             SensorChart {
                 anchors.fill: parent
                 anchors.margins: 8
-                points: chartController.points
+                series: chartController.series
                 useFahrenheit: unitsSwitch.checked
                 fixedTempRangeEnabled: fixedTempRangeSwitch.checked
                 fixedTempMinC: window.fixedTempMinC

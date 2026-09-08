@@ -62,6 +62,7 @@ qt_add_qml_module(komaro_core_qml
     QML_FILES
         qml/AppActions.qml
         qml/SensorChart.qml
+        qml/MultiMeasurementSelect.qml
 )
 
 target_link_libraries(komaro_core_qml PUBLIC
