@@ -2,12 +2,16 @@ import QtQuick
 
 // Dual-axis line chart for temperature (left axis, red) and humidity (right
 // axis, blue) over time, mirroring nano/plot_sensor.py's matplotlib output.
-// `points` is a list of {time (ms since epoch), temperatureC, humidity}, as
-// produced by ChartController.points.
+// `series` is a list of {measurement, points}, where each `points` is a list
+// of {time (ms since epoch), temperatureC, humidity} - as produced by
+// ChartController.series. Multiple series overlay on the same axes, one
+// temperature/humidity line pair each, distinguished by dash pattern
+// (mirroring nano/plot_multi_sensor.py's line-style-per-measurement
+// approach) since color is already spoken for by temperature-vs-humidity.
 Item {
     id: root
 
-    property var points: []
+    property var series: []
     property bool useFahrenheit: false
 
     // When enabled, the corresponding axis uses [min, max] verbatim instead
@@ -25,6 +29,10 @@ Item {
 
     readonly property color temperatureColor: "#e06666"
     readonly property color humidityColor: "#6fa8dc"
+    // Cycled by series index so any number of overlaid measurements stays
+    // distinguishable; same 4-pattern vocabulary matplotlib's default style
+    // cycle uses (solid/dashed/dash-dot/dotted).
+    readonly property var dashPatterns: [[], [6, 4], [6, 3, 1, 3], [1, 3]]
 
     Canvas {
         id: canvas
@@ -52,7 +60,9 @@ Item {
             const ctx = getContext("2d")
             ctx.clearRect(0, 0, width, height)
 
-            if (!root.points || root.points.length === 0) {
+            const nonEmptySeries = (root.series || []).filter(s => s.points && s.points.length > 0)
+
+            if (nonEmptySeries.length === 0) {
                 ctx.fillStyle = "#888888"
                 ctx.font = "16px sans-serif"
                 ctx.textAlign = "center"
@@ -63,25 +73,25 @@ Item {
 
             const marginLeft = 56
             const marginRight = 56
-            const marginTop = 28
+            const marginTop = 28 + 3 * 16
             const marginBottom = 40
             const plotWidth = Math.max(1, width - marginLeft - marginRight)
             const plotHeight = Math.max(1, height - marginTop - marginBottom)
 
-            const times = root.points.map(p => p.time)
-            const temps = root.points.map(p => p.temperatureC)
-            const humids = root.points.map(p => p.humidity)
+            const allTimes = [].concat(...nonEmptySeries.map(s => s.points.map(p => p.time)))
+            const allTemps = [].concat(...nonEmptySeries.map(s => s.points.map(p => p.temperatureC)))
+            const allHumids = [].concat(...nonEmptySeries.map(s => s.points.map(p => p.humidity)))
 
-            const minTime = Math.min.apply(null, times)
-            const maxTime = Math.max.apply(null, times)
+            const minTime = Math.min.apply(null, allTimes)
+            const maxTime = Math.max.apply(null, allTimes)
             const timeSpan = Math.max(1, maxTime - minTime)
 
             const tempRange = root.fixedTempRangeEnabled
                     ? [root.fixedTempMinC, root.fixedTempMaxC]
-                    : paddedRange(Math.min.apply(null, temps), Math.max.apply(null, temps))
+                    : paddedRange(Math.min.apply(null, allTemps), Math.max.apply(null, allTemps))
             const humidRange = root.fixedHumidRangeEnabled
                     ? [root.fixedHumidMin, root.fixedHumidMax]
-                    : paddedRange(Math.min.apply(null, humids), Math.max.apply(null, humids))
+                    : paddedRange(Math.min.apply(null, allHumids), Math.max.apply(null, allHumids))
 
             function xFor(t) { return marginLeft + ((t - minTime) / timeSpan) * plotWidth }
             function yFor(v, range) {
@@ -118,20 +128,21 @@ Item {
             ctx.fillStyle = "#cccccc"
             ctx.textAlign = "center"
             ctx.textBaseline = "top"
-            const xTicks = Math.min(5, root.points.length)
+            const xTicks = Math.min(5, nonEmptySeries[0].points.length)
             for (let xt = 0; xt < xTicks; ++xt) {
                 const frac = xTicks === 1 ? 0 : xt / (xTicks - 1)
                 const tTime = minTime + frac * timeSpan
                 ctx.fillText(formatTick(tTime), xFor(tTime), marginTop + plotHeight + 6)
             }
 
-            function drawLine(values, range, color) {
+            function drawLine(points, valueKey, range, color, dash) {
                 ctx.strokeStyle = color
                 ctx.lineWidth = 1.5
+                ctx.setLineDash(dash)
                 ctx.beginPath()
-                for (let i = 0; i < root.points.length; ++i) {
-                    const x = xFor(times[i])
-                    const y = yFor(values[i], range)
+                for (let i = 0; i < points.length; ++i) {
+                    const x = xFor(points[i].time)
+                    const y = yFor(points[i][valueKey], range)
                     if (i === 0) {
                         ctx.moveTo(x, y)
                     } else {
@@ -139,25 +150,55 @@ Item {
                     }
                 }
                 ctx.stroke()
+                ctx.setLineDash([])
             }
 
-            drawLine(temps, tempRange, root.temperatureColor)
-            drawLine(humids, humidRange, root.humidityColor)
+            for (let s = 0; s < nonEmptySeries.length; ++s) {
+                const dash = root.dashPatterns[s % root.dashPatterns.length]
+                drawLine(nonEmptySeries[s].points, "temperatureC", tempRange, root.temperatureColor, dash)
+                drawLine(nonEmptySeries[s].points, "humidity", humidRange, root.humidityColor, dash)
+            }
 
-            // Legend
+            // Legend: one row, sampling each series' dash pattern so it
+            // doubles as a key for "which dash style is which measurement".
             ctx.textAlign = "left"
             ctx.textBaseline = "top"
+            ctx.font = "11px sans-serif"
+            const legendY = 4
+            let lx = marginLeft + 8
+            for (let s = 0; s < nonEmptySeries.length; ++s) {
+                const dash = root.dashPatterns[s % root.dashPatterns.length]
+
+                ctx.strokeStyle = "#cccccc"
+                ctx.lineWidth = 1.5
+                ctx.setLineDash(dash)
+                ctx.beginPath()
+                ctx.moveTo(lx, legendY + 6)
+                ctx.lineTo(lx + 24, legendY + 6)
+                ctx.stroke()
+                ctx.setLineDash([])
+                lx += 30
+
+                ctx.fillStyle = "#cccccc"
+                const label = nonEmptySeries[s].measurement
+                ctx.fillText(label, lx, legendY)
+                lx += ctx.measureText(label).width + 20
+            }
+
+            // Color key: which color is temperature vs. humidity, same as
+            // the axis tick label colors above.
+            const colorKeyY = legendY + 16
             ctx.fillStyle = root.temperatureColor
-            ctx.fillText(qsTr("Temperature (%1)").arg(root.useFahrenheit ? "F" : "C"), marginLeft + 8, 4)
+            ctx.fillText(qsTr("Temperature (%1)").arg(root.useFahrenheit ? "F" : "C"), marginLeft + 8, colorKeyY)
             ctx.fillStyle = root.humidityColor
-            ctx.fillText(qsTr("Humidity (%)"), marginLeft + 8, 20)
+            ctx.fillText(qsTr("Humidity (%)"), marginLeft + 8, colorKeyY + 16)
         }
 
         onWidthChanged: requestPaint()
         onHeightChanged: requestPaint()
     }
 
-    onPointsChanged: canvas.requestPaint()
+    onSeriesChanged: canvas.requestPaint()
     onUseFahrenheitChanged: canvas.requestPaint()
     onFixedTempRangeEnabledChanged: canvas.requestPaint()
     onFixedTempMinCChanged: canvas.requestPaint()

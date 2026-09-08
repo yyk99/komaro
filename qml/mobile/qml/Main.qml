@@ -34,7 +34,7 @@ ApplicationWindow {
     readonly property string exitIconSource: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/><path d='M13 8l4 4-4 4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/><line x1='8' y1='12' x2='20' y2='12' stroke='white' stroke-width='2' stroke-linecap='round'/></svg>"
 
     // Fixed temperature range bounds, always stored in Celsius (matching
-    // SensorChart.points' temperatureC) regardless of the °C/°F toggle -
+    // SensorChart.series' points' temperatureC) regardless of the °C/°F toggle -
     // the Settings dialog's spin boxes convert to/from whatever unit is
     // currently displayed.
     property real fixedTempMinC: 0
@@ -51,6 +51,7 @@ ApplicationWindow {
         property alias fixedHumidRangeEnabled: fixedHumidRangeSwitch.checked
         property alias fixedHumidMin: humidMinSpin.value
         property alias fixedHumidMax: humidMaxSpin.value
+        property alias selectedMeasurements: measurementSelect.selected
     }
 
     Settings {
@@ -161,7 +162,7 @@ ApplicationWindow {
 
     function reloadChart() {
         if (connectionManager.currentHost.length > 0) {
-            chartController.load(connectionManager.currentHost, measurementCombo.editText,
+            chartController.load(connectionManager.currentHost, measurementSelect.selected,
                                   timeRangeCombo.currentText, windowSpin.value)
         }
     }
@@ -179,18 +180,21 @@ ApplicationWindow {
                 Layout.fillWidth: true
                 spacing: 8
 
-                Label { text: qsTr("Measurement:") }
-                ComboBox {
-                    id: measurementCombo
+                Label { text: qsTr("Sensors:") }
+                MultiMeasurementSelect {
+                    id: measurementSelect
                     Layout.fillWidth: true
-                    editable: true
-                    inputMethodHints: Qt.ImhNoAutoUppercase
-                    model: chartController.recentMeasurements
-                    onAccepted: reloadChart()
-                    onActivated: reloadChart()
+                    options: chartController.recentMeasurements
+                    onSelectedChanged: reloadChart()
                     Component.onCompleted: {
-                        editText = chartController.recentMeasurements.length > 0
-                                ? chartController.recentMeasurements[0] : "sensor"
+                        // Settings' selectedMeasurements alias has already
+                        // restored the previous session's selection by this
+                        // point (if any) - only fall back to a default when
+                        // there's nothing to restore.
+                        if (selected.length === 0) {
+                            selected = chartController.recentMeasurements.length > 0
+                                    ? [chartController.recentMeasurements[0]] : ["sensor"]
+                        }
                     }
                 }
             }
@@ -233,7 +237,7 @@ ApplicationWindow {
             SensorChart {
                 anchors.fill: parent
                 anchors.margins: 8
-                points: chartController.points
+                series: chartController.series
                 useFahrenheit: unitsSwitch.checked
                 fixedTempRangeEnabled: fixedTempRangeSwitch.checked
                 fixedTempMinC: window.fixedTempMinC
