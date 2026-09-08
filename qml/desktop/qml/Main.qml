@@ -36,6 +36,7 @@ ApplicationWindow {
         property alias fixedHumidRangeEnabled: fixedHumidRangeSwitch.checked
         property alias fixedHumidMin: humidMinSpin.value
         property alias fixedHumidMax: humidMaxSpin.value
+        property alias selectedMeasurements: measurementSelect.selected
     }
 
     Settings {
@@ -96,8 +97,13 @@ ApplicationWindow {
                 options: chartController.recentMeasurements
                 onSelectedChanged: reloadChart()
                 Component.onCompleted: {
-                    selected = chartController.recentMeasurements.length > 0
-                            ? [chartController.recentMeasurements[0]] : ["sensor"]
+                    // Settings' selectedMeasurements alias has already restored
+                    // the previous session's selection by this point (if any) -
+                    // only fall back to a default when there's nothing to restore.
+                    if (selected.length === 0) {
+                        selected = chartController.recentMeasurements.length > 0
+                                ? [chartController.recentMeasurements[0]] : ["sensor"]
+                    }
                 }
             }
             Label { text: qsTr("Range:") }
