@@ -272,17 +272,16 @@ Item {
             ctx.fillStyle = root.humidityColor
             ctx.fillText(qsTr("Humidity (%)"), marginLeft + 8, colorKeyY + 16)
 
-            // Hairline: a plain vertical line spanning the plot area, drawn
-            // last so it sits on top of everything else.
+            // Hairline: a vertical line spanning the plot area, styled the
+            // same as the horizontal gridlines above; drawn last so it sits
+            // on top of everything else.
             if (root.hairlineActive) {
-                ctx.strokeStyle = "#ffffff"
+                ctx.strokeStyle = "#3a3a3a"
                 ctx.lineWidth = 1
-                ctx.setLineDash([4, 4])
                 ctx.beginPath()
                 ctx.moveTo(root.hairlinePixelX, marginTop)
                 ctx.lineTo(root.hairlinePixelX, marginTop + plotHeight)
                 ctx.stroke()
-                ctx.setLineDash([])
             }
         }
 
