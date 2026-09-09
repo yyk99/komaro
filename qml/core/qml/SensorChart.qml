@@ -91,10 +91,18 @@ Item {
 
     function celsiusToFahrenheit(c) { return c * 9 / 5 + 32 }
 
+    function pad2(n) { return (n < 10 ? "0" : "") + n }
+
+    function formatTime(ms) {
+        const d = new Date(ms)
+        return pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()) + " " + pad2(d.getHours()) + ":"
+                + pad2(d.getMinutes())
+    }
+
     // Ready-to-display status-bar text for the hairline's current position,
-    // e.g. "living_room: 19.5°C, 42%  •  outdoor: 8.0°C, 68%" - formatting
-    // lives here (not in each app's Main.qml) so unit conversion isn't
-    // duplicated across desktop/mobile.
+    // e.g. "11-14 17:23  —  living_room: 19.5°C, 42%  •  outdoor: 8.0°C, 68%"
+    // - formatting lives here (not in each app's Main.qml) so unit
+    // conversion isn't duplicated across desktop/mobile.
     readonly property string hairlineStatusText: {
         if (!hairlineActive) {
             return ""
@@ -112,20 +120,12 @@ Item {
             return v.measurement + ": " + displayTemp.toFixed(1) + (useFahrenheit ? "°F" : "°C") + ", "
                     + v.humidity.toFixed(0) + "%"
         })
-        return parts.join("  •  ")
+        return formatTime(timeMs) + "  —  " + parts.join("  •  ")
     }
 
     Canvas {
         id: canvas
         anchors.fill: parent
-
-        function pad2(n) { return (n < 10 ? "0" : "") + n }
-
-        function formatTick(ms) {
-            const d = new Date(ms)
-            return pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()) + " " + pad2(d.getHours()) + ":"
-                    + pad2(d.getMinutes())
-        }
 
         function paddedRange(lo, hi) {
             if (hi - lo < 1e-6) {
@@ -211,7 +211,7 @@ Item {
             for (let xt = 0; xt < xTicks; ++xt) {
                 const frac = xTicks === 1 ? 0 : xt / (xTicks - 1)
                 const tTime = minTime + frac * timeSpan
-                ctx.fillText(formatTick(tTime), xFor(tTime), marginTop + plotHeight + 6)
+                ctx.fillText(root.formatTime(tTime), xFor(tTime), marginTop + plotHeight + 6)
             }
 
             function drawLine(points, valueKey, range, color, dash) {
