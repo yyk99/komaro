@@ -10,7 +10,8 @@
 
 - [x] Replace the placeholder plot area with a real temperature/humidity chart, mirroring `nano/plot_sensor.py` (query, moving average, dual y-axis) — `ChartController` (core) + `SensorChart.qml` (custom `Canvas`, shared via `KomaroCore`), wired into both desktop and mobile shells with measurement/range/smoothing controls
 - [ ] Chart is a hand-rolled `Canvas` (no QtCharts/QtGraphs installed in the Qt kit); revisit if Qt Charts/Graphs gets added to the kit later and a richer chart (zoom/pan, legends) is wanted
-- [ ] No axis interaction (zoom/pan/hover tooltips) yet — static redraw on data/resize only
+- [x] Value inspection: tap-to-toggle/drag-to-move hairline (crosshair) shows the nearest reading per series in the status bar (see `SensorChart.qml`'s `hairlineStatusText`)
+- [ ] No zoom/pan yet — tracked in GitHub issue #26 (deliberately left as a separate two-finger gesture from the hairline's one-finger tap/drag - see issue #25)
 
 ## Mobile / Android
 
