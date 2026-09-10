@@ -141,6 +141,7 @@ ApplicationWindow {
             Layout.fillHeight: true
 
             SensorChart {
+                id: sensorChart
                 anchors.fill: parent
                 anchors.margins: 8
                 series: chartController.series
@@ -157,7 +158,7 @@ ApplicationWindow {
                 anchors.left: parent.left
                 anchors.bottom: parent.bottom
                 anchors.margins: 8
-                text: chartController.status
+                text: sensorChart.hairlineStatusText.length > 0 ? sensorChart.hairlineStatusText : chartController.status
                 color: "white"
                 visible: text.length > 0
             }

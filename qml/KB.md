@@ -14,6 +14,15 @@ Notes on QML/Qt topics for this project that don't belong in `README.md` (which 
 
 **How this was caught:** by actually installing to a scratch prefix and running the result (`env -i HOME=<scratch> QT_QPA_PLATFORM=offscreen <installed-binary>`) rather than trusting a clean `cmake --install` log - the missing-QML-imports gap surfaced as `module ... is not installed`, and the missing-transitive-dependency gap only surfaced one layer deeper, as an undefined-symbol crash, once the first was fixed.
 
+## Why the chart's hairline tool uses one gesture model for both mouse and touch
+
+`SensorChart.qml`'s hairline (crosshair) tool - tap to toggle on/off, drag to show/move it - is implemented with a single `MouseArea` using raw `onPressed`/`onPositionChanged`/`onReleased` handlers, deliberately *not* `MouseArea.onClicked`. Two reasons:
+
+- **`MouseArea` already synthesizes from touch events**, so one implementation covers desktop mouse and mobile/Android touch without any platform branching - no need for a separate `TapHandler`/`HoverHandler`-based path just for touch.
+- **`MouseArea.clicked` fires on release regardless of movement in between** (as long as press and release both happened inside the area and it wasn't a press-and-hold) - it does not mean "a tap with no drag". Using it directly would fire an unwanted toggle-off immediately after every drag-to-reposition gesture, right when the user releases their finger/mouse button. Tracking `pressX`/`pressY` manually and only treating a release as a toggle when movement never exceeded a small threshold (5px) is what actually distinguishes "tap" from "drag" here.
+
+This choice was made together with recording the touch-gesture decision itself in issue #25 - pinch-to-zoom (two fingers) is reserved for a future zoom feature specifically so it wouldn't collide with this one-finger tap/drag vocabulary.
+
 ## Visually verifying a QML component without running the full app
 
 Useful when a change touches rendering (e.g. a `Canvas`-based chart) and you want to confirm actual pixels, not just that the code compiles.
