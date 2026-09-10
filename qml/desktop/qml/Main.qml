@@ -16,6 +16,7 @@ ApplicationWindow {
         onConnectRequested: connectDialog.open()
         onAboutRequested: aboutDialog.open()
         onSettingsRequested: settingsDialog.open()
+        onHelpRequested: helpDialog.open()
     }
 
     // Fixed temperature range bounds, always stored in Celsius (matching
@@ -70,6 +71,7 @@ ApplicationWindow {
         }
         Menu {
             title: qsTr("&Help")
+            MenuItem { action: appActions.helpAction }
             MenuItem { action: appActions.aboutAction }
         }
     }
@@ -178,6 +180,45 @@ ApplicationWindow {
             Label { text: qsTr("Komaro Sensor Viewer") }
             Label { text: qsTr("Desktop QML app") }
             Label { text: qsTr("Built: %1").arg(appBuildTimestamp) }
+        }
+    }
+
+    Dialog {
+        id: helpDialog
+        title: qsTr("Help")
+        anchors.centerIn: parent
+        modal: true
+        standardButtons: Dialog.Ok
+
+        ColumnLayout {
+            width: 420
+            spacing: 12
+
+            Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: qsTr("<b>Connect</b><br>File → Connect to enter an InfluxDB host. Recently used hosts are remembered.")
+            }
+            Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: qsTr("<b>Sensors</b><br>Pick one or more measurements from the Sensors selector. Each selected sensor gets its own temperature/humidity line pair on the chart, distinguished by line style.")
+            }
+            Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: qsTr("<b>Range / Smoothing / Units</b><br>Choose how far back to query, a moving-average smoothing window (in samples), and °C/°F.")
+            }
+            Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: qsTr("<b>Settings</b><br>Fixed temperature/humidity axis ranges, connecting to the last server automatically on startup, and periodic auto-refresh are all here.")
+            }
+            Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: qsTr("<b>Hairline</b><br>Tap the chart to show a vertical hairline with each sensor's value at that time in the status bar. Drag to move it. Tap again to hide it.")
+            }
         }
     }
 
