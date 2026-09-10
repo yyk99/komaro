@@ -20,12 +20,15 @@ ApplicationWindow {
         onConnectRequested: connectDialog.open()
         onAboutRequested: aboutDialog.open()
         onSettingsRequested: settingsDialog.open()
+        onHelpRequested: helpDialog.open()
     }
 
-    // Inline data-URI icons (link/sliders/info/logout) since the project has no
-    // bundled icon asset pipeline; drawn in white to match Material.Dark text.
+    // Inline data-URI icons (link/sliders/info/logout/question-mark) since
+    // the project has no bundled icon asset pipeline; drawn in white to
+    // match Material.Dark text.
     readonly property string connectIconSource: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='2' y='7' width='10' height='10' rx='5' fill='none' stroke='white' stroke-width='2'/><rect x='12' y='7' width='10' height='10' rx='5' fill='none' stroke='white' stroke-width='2'/></svg>"
     readonly property string aboutIconSource: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10' fill='none' stroke='white' stroke-width='2'/><circle cx='12' cy='7.5' r='1.3' fill='white'/><rect x='10.8' y='10.5' width='2.4' height='7' rx='1.2' fill='white'/></svg>"
+    readonly property string helpIconSource: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10' fill='none' stroke='white' stroke-width='2'/><text x='12' y='17' text-anchor='middle' font-size='14' font-family='sans-serif' fill='white'>?</text></svg>"
     readonly property string settingsIconSource: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><line x1='4' y1='6' x2='20' y2='6' stroke='white' stroke-width='2' stroke-linecap='round'/><circle cx='9' cy='6' r='2' fill='white'/><line x1='4' y1='12' x2='20' y2='12' stroke='white' stroke-width='2' stroke-linecap='round'/><circle cx='15' cy='12' r='2' fill='white'/><line x1='4' y1='18' x2='20' y2='18' stroke='white' stroke-width='2' stroke-linecap='round'/><circle cx='9' cy='18' r='2' fill='white'/></svg>"
     // "Hamburger" menu icon - a literal U+2630 glyph looked wrong on Android
     // (the default font there doesn't reliably cover it), so this uses the
@@ -144,6 +147,18 @@ ApplicationWindow {
             Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+            }
+            ItemDelegate {
+                text: appActions.helpAction.text
+                icon.source: helpIconSource
+                icon.width: 20
+                icon.height: 20
+                Layout.fillWidth: true
+                Layout.preferredHeight: 40
+                onClicked: {
+                    drawer.close()
+                    appActions.helpAction.trigger()
+                }
             }
             ItemDelegate {
                 text: appActions.aboutAction.text
@@ -272,6 +287,45 @@ ApplicationWindow {
             Label { text: qsTr("Komaro Sensor Viewer") }
             Label { text: qsTr("Mobile-look QML app") }
             Label { text: qsTr("Built: %1").arg(appBuildTimestamp) }
+        }
+    }
+
+    Dialog {
+        id: helpDialog
+        title: qsTr("Help")
+        anchors.centerIn: parent
+        modal: true
+        standardButtons: Dialog.Ok
+
+        ColumnLayout {
+            width: Math.min(340, window.width - 40)
+            spacing: 12
+
+            Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: qsTr("<b>Connect</b><br>Menu (☰) → Connect to enter an InfluxDB host. Recently used hosts are remembered.")
+            }
+            Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: qsTr("<b>Sensors</b><br>Pick one or more measurements from the Sensors selector. Each selected sensor gets its own temperature/humidity line pair on the chart, distinguished by line style.")
+            }
+            Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: qsTr("<b>Range / Smoothing / Units</b><br>Choose how far back to query, a moving-average smoothing window (in samples), and °C/°F.")
+            }
+            Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: qsTr("<b>Settings</b><br>Fixed temperature/humidity axis ranges, keeping the screen on, connecting to the last server automatically on startup, and periodic auto-refresh are all here.")
+            }
+            Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: qsTr("<b>Hairline</b><br>Tap the chart to show a vertical hairline with each sensor's value at that time in the status bar. Drag to move it. Tap again to hide it.")
+            }
         }
     }
 
