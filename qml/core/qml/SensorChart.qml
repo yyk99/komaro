@@ -44,12 +44,25 @@ Item {
     // Hairline (crosshair) inspection tool: tap to toggle on/off; drag (a
     // press followed by movement, on mouse or touch alike) shows/moves it
     // regardless of prior state. See qml/KB.md for why one gesture model
-    // serves both mouse and touch here.
+    // serves both mouse and touch here. Position is stored as a time value,
+    // not a pixel-x - a pixel position would silently point at a different
+    // moment whenever the x axis rescales (e.g. switching the time range),
+    // since the same pixel maps to a different time once minTime/timeSpan
+    // change. Storing the time instead means the hairline stays pinned to
+    // the moment the user picked, and simply redraws at whatever pixel that
+    // moment now falls on.
     property bool hairlineActive: false
-    property real hairlinePixelX: 0
+    property real hairlineTimeMs: 0
 
     function nonEmptySeries() {
         return (root.series || []).filter(s => s.points && s.points.length > 0)
+    }
+
+    function timeSpanOf(nonEmpty) {
+        const allTimes = [].concat(...nonEmpty.map(s => s.points.map(p => p.time)))
+        const minTime = Math.min.apply(null, allTimes)
+        const maxTime = Math.max.apply(null, allTimes)
+        return [minTime, Math.max(1, maxTime - minTime)]
     }
 
     // Maps a pixel-x within the plot area to the time (ms since epoch) it
@@ -60,13 +73,22 @@ Item {
         if (nonEmpty.length === 0) {
             return null
         }
-        const allTimes = [].concat(...nonEmpty.map(s => s.points.map(p => p.time)))
-        const minTime = Math.min.apply(null, allTimes)
-        const maxTime = Math.max.apply(null, allTimes)
-        const timeSpan = Math.max(1, maxTime - minTime)
+        const [minTime, timeSpan] = timeSpanOf(nonEmpty)
         const plotWidth = Math.max(1, width - marginLeft - marginRight)
         const frac = (pixelX - marginLeft) / plotWidth
         return minTime + frac * timeSpan
+    }
+
+    // Inverse of timeAtPixelX() - where a given time currently falls on the
+    // x axis, for drawing the hairline at its pinned time.
+    function pixelXAtTime(timeMs) {
+        const nonEmpty = nonEmptySeries()
+        if (nonEmpty.length === 0) {
+            return marginLeft
+        }
+        const [minTime, timeSpan] = timeSpanOf(nonEmpty)
+        const plotWidth = Math.max(1, width - marginLeft - marginRight)
+        return marginLeft + ((timeMs - minTime) / timeSpan) * plotWidth
     }
 
     // For each non-empty series, finds the point nearest `timeMs` - the
@@ -107,11 +129,7 @@ Item {
         if (!hairlineActive) {
             return ""
         }
-        const timeMs = timeAtPixelX(hairlinePixelX)
-        if (timeMs === null) {
-            return ""
-        }
-        const values = nearestPointsAtTime(timeMs)
+        const values = nearestPointsAtTime(hairlineTimeMs)
         if (values.length === 0) {
             return ""
         }
@@ -120,7 +138,7 @@ Item {
             return v.measurement + ": " + displayTemp.toFixed(1) + (useFahrenheit ? "°F" : "°C") + ", "
                     + v.humidity.toFixed(0) + "%"
         })
-        return formatTime(timeMs) + "  —  " + parts.join("  •  ")
+        return formatTime(hairlineTimeMs) + "  —  " + parts.join("  •  ")
     }
 
     Canvas {
@@ -276,11 +294,12 @@ Item {
             // same as the horizontal gridlines above; drawn last so it sits
             // on top of everything else.
             if (root.hairlineActive) {
+                const hairlineX = root.pixelXAtTime(root.hairlineTimeMs)
                 ctx.strokeStyle = "#3a3a3a"
                 ctx.lineWidth = 1
                 ctx.beginPath()
-                ctx.moveTo(root.hairlinePixelX, marginTop)
-                ctx.lineTo(root.hairlinePixelX, marginTop + plotHeight)
+                ctx.moveTo(hairlineX, marginTop)
+                ctx.lineTo(hairlineX, marginTop + plotHeight)
                 ctx.stroke()
             }
         }
@@ -310,15 +329,23 @@ Item {
                 moved = true
             }
             if (moved) {
-                root.hairlineActive = true
-                root.hairlinePixelX = mouse.x
+                const timeMs = root.timeAtPixelX(mouse.x)
+                if (timeMs !== null) {
+                    root.hairlineActive = true
+                    root.hairlineTimeMs = timeMs
+                }
             }
         }
         onReleased: (mouse) => {
             if (!moved) {
                 root.hairlineActive = !root.hairlineActive
                 if (root.hairlineActive) {
-                    root.hairlinePixelX = mouse.x
+                    const timeMs = root.timeAtPixelX(mouse.x)
+                    if (timeMs !== null) {
+                        root.hairlineTimeMs = timeMs
+                    } else {
+                        root.hairlineActive = false
+                    }
                 }
             }
             moved = false
@@ -334,5 +361,5 @@ Item {
     onFixedHumidMinChanged: canvas.requestPaint()
     onFixedHumidMaxChanged: canvas.requestPaint()
     onHairlineActiveChanged: canvas.requestPaint()
-    onHairlinePixelXChanged: canvas.requestPaint()
+    onHairlineTimeMsChanged: canvas.requestPaint()
 }
