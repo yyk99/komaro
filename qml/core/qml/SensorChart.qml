@@ -35,7 +35,7 @@ Item {
     readonly property var dashPatterns: [[], [6, 4], [6, 3, 1, 3], [1, 3]]
 
     // Horizontal-only margins, shared between onPaint's drawing and the
-    // hairline's hit-testing below - both need to agree on the same
+    // hairline/zoom hit-testing below - both need to agree on the same
     // pixel-x <-> time mapping. marginTop/marginBottom don't affect that
     // mapping, so they stay local to onPaint.
     readonly property int marginLeft: 56
@@ -54,6 +54,24 @@ Item {
     property bool hairlineActive: false
     property real hairlineTimeMs: 0
 
+    // Zoom: double-click sets one corner of a temporary time window
+    // (zoomPending, at zoomPendingTimeMs), a second double-click sets the
+    // other corner and activates it (zoomActive, [zoomStartTimeMs,
+    // zoomEndTimeMs]) - narrowing the x axis (and, unless a fixed range is
+    // set, the y axes too, since only the points falling inside the window
+    // are drawn) without re-querying InfluxDB for a smaller time range.
+    // Double-click was chosen specifically to not collide with the
+    // hairline's single-click toggle/drag above - see qml/KB.md. Exiting
+    // zoom is intentionally not another chart gesture: each app's time
+    // range control calls resetZoom() when the user picks any of its
+    // normal presets, since zoom is conceptually just a temporary
+    // override of that same "what time window am I viewing" choice.
+    property bool zoomPending: false
+    property real zoomPendingTimeMs: 0
+    property bool zoomActive: false
+    property real zoomStartTimeMs: 0
+    property real zoomEndTimeMs: 0
+
     function nonEmptySeries() {
         return (root.series || []).filter(s => s.points && s.points.length > 0)
     }
@@ -65,30 +83,57 @@ Item {
         return [minTime, Math.max(1, maxTime - minTime)]
     }
 
-    // Maps a pixel-x within the plot area to the time (ms since epoch) it
-    // corresponds to, using the same min/max-time span onPaint computes for
-    // the x axis. Returns null if there's no data to map against.
-    function timeAtPixelX(pixelX) {
+    // [minTime, timeSpan] for whatever's currently driving the x axis - the
+    // zoom window if active, otherwise the full data range. Shared by
+    // onPaint and the hit-testing functions below so they always agree.
+    function effectiveTimeRange() {
+        if (zoomActive) {
+            const lo = Math.min(zoomStartTimeMs, zoomEndTimeMs)
+            const hi = Math.max(zoomStartTimeMs, zoomEndTimeMs)
+            return [lo, Math.max(1, hi - lo)]
+        }
         const nonEmpty = nonEmptySeries()
         if (nonEmpty.length === 0) {
+            return [0, 1]
+        }
+        return timeSpanOf(nonEmpty)
+    }
+
+    // Maps a pixel-x within the plot area to the time (ms since epoch) it
+    // corresponds to, using the same effective time range onPaint computes
+    // for the x axis. Returns null if there's no data to map against.
+    function timeAtPixelX(pixelX) {
+        if (nonEmptySeries().length === 0) {
             return null
         }
-        const [minTime, timeSpan] = timeSpanOf(nonEmpty)
+        const [minTime, timeSpan] = effectiveTimeRange()
         const plotWidth = Math.max(1, width - marginLeft - marginRight)
         const frac = (pixelX - marginLeft) / plotWidth
         return minTime + frac * timeSpan
     }
 
     // Inverse of timeAtPixelX() - where a given time currently falls on the
-    // x axis, for drawing the hairline at its pinned time.
+    // x axis, for drawing the hairline/zoom markers at their pinned times.
     function pixelXAtTime(timeMs) {
-        const nonEmpty = nonEmptySeries()
-        if (nonEmpty.length === 0) {
+        if (nonEmptySeries().length === 0) {
             return marginLeft
         }
-        const [minTime, timeSpan] = timeSpanOf(nonEmpty)
+        const [minTime, timeSpan] = effectiveTimeRange()
         const plotWidth = Math.max(1, width - marginLeft - marginRight)
         return marginLeft + ((timeMs - minTime) / timeSpan) * plotWidth
+    }
+
+    // Series filtered to only points within the current effective time
+    // window (full range, or the zoom window if active) - shared by
+    // onPaint's drawing and zoomStatusText's point count below, so what's
+    // displayed always matches what's actually plotted.
+    function visibleSeries() {
+        const [minTime, timeSpan] = effectiveTimeRange()
+        const maxTime = minTime + timeSpan
+        return nonEmptySeries()
+                .map(s => ({measurement: s.measurement,
+                            points: s.points.filter(p => p.time >= minTime && p.time <= maxTime)}))
+                .filter(s => s.points.length > 0)
     }
 
     // For each non-empty series, finds the point nearest `timeMs` - the
@@ -109,6 +154,40 @@ Item {
             result.push({measurement: s.measurement, temperatureC: nearest.temperatureC, humidity: nearest.humidity})
         }
         return result
+    }
+
+    // Handles one double-click during zoom-window selection: the first call
+    // records the pending corner, the second completes the window (ordering
+    // the two times so drag direction doesn't matter) and activates zoom.
+    // Also usable to start a *new* zoom window while already zoomed in.
+    function handleZoomCornerClick(pixelX) {
+        const timeMs = timeAtPixelX(pixelX)
+        if (timeMs === null) {
+            return
+        }
+        if (!zoomPending) {
+            zoomPendingTimeMs = timeMs
+            zoomPending = true
+            return
+        }
+        if (Math.abs(timeMs - zoomPendingTimeMs) < 1) {
+            // Second corner landed on the first - too close to be
+            // intentional; cancel rather than activate a zero-width zoom.
+            zoomPending = false
+            return
+        }
+        zoomStartTimeMs = Math.min(zoomPendingTimeMs, timeMs)
+        zoomEndTimeMs = Math.max(zoomPendingTimeMs, timeMs)
+        zoomPending = false
+        zoomActive = true
+    }
+
+    // Called by each app's time-range control when the user picks one of
+    // its normal presets - see the zoomActive/zoomPending doc comment above
+    // for why exiting zoom isn't a chart gesture.
+    function resetZoom() {
+        zoomActive = false
+        zoomPending = false
     }
 
     function celsiusToFahrenheit(c) { return c * 9 / 5 + 32 }
@@ -141,6 +220,20 @@ Item {
         return formatTime(hairlineTimeMs) + "  —  " + parts.join("  •  ")
     }
 
+    // Ready-to-display status-bar text for the zoomed point count, e.g.
+    // "42 points (zoomed)" - ChartController.status reports the count from
+    // the full server fetch, which stays wrong while zoomed since zoom is a
+    // client-side crop with no re-query involved. Empty (falls through to
+    // ChartController.status) when not zoomed. Lower priority than
+    // hairlineStatusText - each app's status Label checks that first.
+    readonly property string zoomStatusText: {
+        if (!zoomActive) {
+            return ""
+        }
+        const count = visibleSeries().reduce((sum, s) => sum + s.points.length, 0)
+        return qsTr("%1 points (zoomed)").arg(count)
+    }
+
     Canvas {
         id: canvas
         anchors.fill: parent
@@ -157,9 +250,9 @@ Item {
             const ctx = getContext("2d")
             ctx.clearRect(0, 0, width, height)
 
-            const nonEmptySeries = root.nonEmptySeries()
+            const allSeries = root.nonEmptySeries()
 
-            if (nonEmptySeries.length === 0) {
+            if (allSeries.length === 0) {
                 ctx.fillStyle = "#888888"
                 ctx.font = "16px sans-serif"
                 ctx.textAlign = "center"
@@ -175,13 +268,27 @@ Item {
             const plotWidth = Math.max(1, width - marginLeft - marginRight)
             const plotHeight = Math.max(1, height - marginTop - marginBottom)
 
-            const allTimes = [].concat(...nonEmptySeries.map(s => s.points.map(p => p.time)))
+            const [minTime, timeSpan] = root.effectiveTimeRange()
+
+            // Only the points actually falling inside the current window
+            // (full range, or the zoom window if active) count towards
+            // drawing and the y-axis auto-scale - zooming in also rescales
+            // temperature/humidity to whatever's visible, not the full
+            // dataset's range. A series with nothing in the window is
+            // dropped for this paint, same as an empty series normally is.
+            const nonEmptySeries = root.visibleSeries()
+
+            if (nonEmptySeries.length === 0) {
+                ctx.fillStyle = "#888888"
+                ctx.font = "16px sans-serif"
+                ctx.textAlign = "center"
+                ctx.textBaseline = "middle"
+                ctx.fillText(qsTr("No data in this range"), width / 2, height / 2)
+                return
+            }
+
             const allTemps = [].concat(...nonEmptySeries.map(s => s.points.map(p => p.temperatureC)))
             const allHumids = [].concat(...nonEmptySeries.map(s => s.points.map(p => p.humidity)))
-
-            const minTime = Math.min.apply(null, allTimes)
-            const maxTime = Math.max.apply(null, allTimes)
-            const timeSpan = Math.max(1, maxTime - minTime)
 
             const tempRange = root.fixedTempRangeEnabled
                     ? [root.fixedTempMinC, root.fixedTempMaxC]
@@ -225,9 +332,9 @@ Item {
             ctx.fillStyle = "#cccccc"
             ctx.textAlign = "center"
             ctx.textBaseline = "top"
-            const xTicks = Math.min(5, nonEmptySeries[0].points.length)
+            const xTicks = 5
             for (let xt = 0; xt < xTicks; ++xt) {
-                const frac = xTicks === 1 ? 0 : xt / (xTicks - 1)
+                const frac = xt / (xTicks - 1)
                 const tTime = minTime + frac * timeSpan
                 ctx.fillText(root.formatTime(tTime), xFor(tTime), marginTop + plotHeight + 6)
             }
@@ -302,6 +409,22 @@ Item {
                 ctx.lineTo(hairlineX, marginTop + plotHeight)
                 ctx.stroke()
             }
+
+            // Zoom-pending marker: the first corner the user already
+            // placed, waiting for the second double-click. Styled
+            // distinctly (yellow, dashed) from both the hairline and the
+            // data lines so it doesn't get confused with either.
+            if (root.zoomPending) {
+                const pendingX = root.pixelXAtTime(root.zoomPendingTimeMs)
+                ctx.strokeStyle = "#e0c040"
+                ctx.lineWidth = 1
+                ctx.setLineDash([2, 3])
+                ctx.beginPath()
+                ctx.moveTo(pendingX, marginTop)
+                ctx.lineTo(pendingX, marginTop + plotHeight)
+                ctx.stroke()
+                ctx.setLineDash([])
+            }
         }
 
         onWidthChanged: requestPaint()
@@ -315,6 +438,7 @@ Item {
         property real pressX: 0
         property real pressY: 0
         property bool moved: false
+        property real pendingTapX: 0
 
         onPressed: (mouse) => {
             pressX = mouse.x
@@ -338,9 +462,29 @@ Item {
         }
         onReleased: (mouse) => {
             if (!moved) {
+                // Deferred: might be the first half of a double-click (for
+                // zoom), which onDoubleClicked below will cancel via
+                // singleTapTimer.stop() if a second click follows in time.
+                pendingTapX = mouse.x
+                singleTapTimer.restart()
+            }
+            moved = false
+        }
+        onDoubleClicked: (mouse) => {
+            singleTapTimer.stop()
+            root.handleZoomCornerClick(mouse.x)
+        }
+
+        Timer {
+            id: singleTapTimer
+            // Matches Qt's own double-click detection window, so a plain
+            // tap is confirmed exactly when Qt itself would have given up
+            // on waiting for a second click.
+            interval: Qt.styleHints.mouseDoubleClickInterval
+            onTriggered: {
                 root.hairlineActive = !root.hairlineActive
                 if (root.hairlineActive) {
-                    const timeMs = root.timeAtPixelX(mouse.x)
+                    const timeMs = root.timeAtPixelX(hairlineArea.pendingTapX)
                     if (timeMs !== null) {
                         root.hairlineTimeMs = timeMs
                     } else {
@@ -348,7 +492,6 @@ Item {
                     }
                 }
             }
-            moved = false
         }
     }
 
@@ -362,4 +505,9 @@ Item {
     onFixedHumidMaxChanged: canvas.requestPaint()
     onHairlineActiveChanged: canvas.requestPaint()
     onHairlineTimeMsChanged: canvas.requestPaint()
+    onZoomPendingChanged: canvas.requestPaint()
+    onZoomPendingTimeMsChanged: canvas.requestPaint()
+    onZoomActiveChanged: canvas.requestPaint()
+    onZoomStartTimeMsChanged: canvas.requestPaint()
+    onZoomEndTimeMsChanged: canvas.requestPaint()
 }

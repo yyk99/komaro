@@ -113,7 +113,20 @@ ApplicationWindow {
                 id: timeRangeCombo
                 model: ["1h", "6h", "24h", "48h", "7d", "30d", "all"]
                 currentIndex: 4
-                onActivated: reloadChart()
+                // While zoomed, show "Zoomed" instead of the current preset
+                // rather than faking an extra model entry - currentIndex
+                // (persisted via Settings) stays untouched either way.
+                // Picking any preset from the dropdown - including
+                // reselecting the one already active, since ComboBox.
+                // activated fires on every explicit selection regardless of
+                // whether the index changed - exits zoom; see
+                // SensorChart.resetZoom()'s doc comment for why this is the
+                // chosen way to exit zoom rather than a chart gesture.
+                displayText: sensorChart.zoomActive ? qsTr("Zoomed") : currentText
+                onActivated: {
+                    sensorChart.resetZoom()
+                    reloadChart()
+                }
             }
             Label { text: qsTr("Smoothing:") }
             SpinBox {
@@ -160,7 +173,9 @@ ApplicationWindow {
                 anchors.left: parent.left
                 anchors.bottom: parent.bottom
                 anchors.margins: 8
-                text: sensorChart.hairlineStatusText.length > 0 ? sensorChart.hairlineStatusText : chartController.status
+                text: sensorChart.hairlineStatusText.length > 0 ? sensorChart.hairlineStatusText
+                        : sensorChart.zoomStatusText.length > 0 ? sensorChart.zoomStatusText
+                        : chartController.status
                 color: "white"
                 visible: text.length > 0
             }
@@ -218,6 +233,11 @@ ApplicationWindow {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
                 text: qsTr("<b>Hairline</b><br>Tap the chart to show a vertical hairline with each sensor's value at that time in the status bar. Drag to move it. Tap again to hide it.")
+            }
+            Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: qsTr("<b>Zoom</b><br>Double-click once to set the first corner of a temporary zoom window, then double-click again to set the second - the chart rescales to just that time range. Pick any preset from the Range dropdown to zoom back out.")
             }
         }
     }
