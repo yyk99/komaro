@@ -11,7 +11,8 @@
 - [x] Replace the placeholder plot area with a real temperature/humidity chart, mirroring `nano/plot_sensor.py` (query, moving average, dual y-axis) — `ChartController` (core) + `SensorChart.qml` (custom `Canvas`, shared via `KomaroCore`), wired into both desktop and mobile shells with measurement/range/smoothing controls
 - [ ] Chart is a hand-rolled `Canvas` (no QtCharts/QtGraphs installed in the Qt kit); revisit if Qt Charts/Graphs gets added to the kit later and a richer chart (zoom/pan, legends) is wanted
 - [x] Value inspection: tap-to-toggle/drag-to-move hairline (crosshair) shows the nearest reading per series in the status bar (see `SensorChart.qml`'s `hairlineStatusText`)
-- [ ] No zoom/pan yet — tracked in GitHub issue #26 (deliberately left as a separate two-finger gesture from the hairline's one-finger tap/drag - see issue #25)
+- [x] Zoom: double-click/double-tap sets a temporary time window (GitHub issue #26); reuses the time-range `ComboBox` to exit rather than a new gesture/button. Still double-click-based on touch (not a native pinch gesture) - see `qml/KB.md`
+- [ ] Native pinch-to-zoom on touch, as a nicer alternative to the current double-tap on Android
 
 ## Mobile / Android
 
