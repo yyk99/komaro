@@ -342,6 +342,11 @@ ApplicationWindow {
                 wrapMode: Text.WordWrap
                 text: qsTr("<b>Hairline</b><br>Tap the chart to show a vertical hairline with each sensor's value at that time in the status bar. Drag to move it. Tap again to hide it.")
             }
+            Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: qsTr("<b>Zoom</b><br>Double-tap once to set the first corner of a temporary zoom window, then double-tap again to set the second - the chart rescales to just that time range. Pick any preset from the Range dropdown to zoom back out.")
+            }
         }
     }
 
