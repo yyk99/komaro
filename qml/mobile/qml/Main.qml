@@ -222,7 +222,21 @@ ApplicationWindow {
                     Layout.fillWidth: true
                     model: ["1h", "6h", "24h", "48h", "7d", "30d", "all"]
                     currentIndex: 4
-                    onActivated: reloadChart()
+                    // While zoomed, show "Zoomed" instead of the current
+                    // preset rather than faking an extra model entry -
+                    // currentIndex (persisted via Settings) stays untouched
+                    // either way. Picking any preset from the dropdown -
+                    // including reselecting the one already active, since
+                    // ComboBox.activated fires on every explicit selection
+                    // regardless of whether the index changed - exits zoom;
+                    // see SensorChart.resetZoom()'s doc comment for why
+                    // this is the chosen way to exit zoom rather than a
+                    // chart gesture.
+                    displayText: sensorChart.zoomActive ? qsTr("Zoomed") : currentText
+                    onActivated: {
+                        sensorChart.resetZoom()
+                        reloadChart()
+                    }
                 }
                 SpinBox {
                     id: windowSpin
