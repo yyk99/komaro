@@ -123,6 +123,19 @@ Item {
         return marginLeft + ((timeMs - minTime) / timeSpan) * plotWidth
     }
 
+    // Series filtered to only points within the current effective time
+    // window (full range, or the zoom window if active) - shared by
+    // onPaint's drawing and zoomStatusText's point count below, so what's
+    // displayed always matches what's actually plotted.
+    function visibleSeries() {
+        const [minTime, timeSpan] = effectiveTimeRange()
+        const maxTime = minTime + timeSpan
+        return nonEmptySeries()
+                .map(s => ({measurement: s.measurement,
+                            points: s.points.filter(p => p.time >= minTime && p.time <= maxTime)}))
+                .filter(s => s.points.length > 0)
+    }
+
     // For each non-empty series, finds the point nearest `timeMs` - the
     // hairline snaps to real readings rather than interpolating between
     // them, so the status bar always shows values that actually occurred.
@@ -207,6 +220,20 @@ Item {
         return formatTime(hairlineTimeMs) + "  —  " + parts.join("  •  ")
     }
 
+    // Ready-to-display status-bar text for the zoomed point count, e.g.
+    // "42 points (zoomed)" - ChartController.status reports the count from
+    // the full server fetch, which stays wrong while zoomed since zoom is a
+    // client-side crop with no re-query involved. Empty (falls through to
+    // ChartController.status) when not zoomed. Lower priority than
+    // hairlineStatusText - each app's status Label checks that first.
+    readonly property string zoomStatusText: {
+        if (!zoomActive) {
+            return ""
+        }
+        const count = visibleSeries().reduce((sum, s) => sum + s.points.length, 0)
+        return qsTr("%1 points (zoomed)").arg(count)
+    }
+
     Canvas {
         id: canvas
         anchors.fill: parent
@@ -242,7 +269,6 @@ Item {
             const plotHeight = Math.max(1, height - marginTop - marginBottom)
 
             const [minTime, timeSpan] = root.effectiveTimeRange()
-            const maxTime = minTime + timeSpan
 
             // Only the points actually falling inside the current window
             // (full range, or the zoom window if active) count towards
@@ -250,10 +276,7 @@ Item {
             // temperature/humidity to whatever's visible, not the full
             // dataset's range. A series with nothing in the window is
             // dropped for this paint, same as an empty series normally is.
-            const nonEmptySeries = allSeries
-                    .map(s => ({measurement: s.measurement,
-                                points: s.points.filter(p => p.time >= minTime && p.time <= maxTime)}))
-                    .filter(s => s.points.length > 0)
+            const nonEmptySeries = root.visibleSeries()
 
             if (nonEmptySeries.length === 0) {
                 ctx.fillStyle = "#888888"

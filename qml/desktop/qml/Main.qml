@@ -173,7 +173,9 @@ ApplicationWindow {
                 anchors.left: parent.left
                 anchors.bottom: parent.bottom
                 anchors.margins: 8
-                text: sensorChart.hairlineStatusText.length > 0 ? sensorChart.hairlineStatusText : chartController.status
+                text: sensorChart.hairlineStatusText.length > 0 ? sensorChart.hairlineStatusText
+                        : sensorChart.zoomStatusText.length > 0 ? sensorChart.zoomStatusText
+                        : chartController.status
                 color: "white"
                 visible: text.length > 0
             }
