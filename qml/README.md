@@ -5,11 +5,15 @@ It is similar in purpose to the `nano/plot_sensor.py` / `nano/plot_multi_sensor.
 
 ## Layout
 
-| Directory  | What it is                                                                  |
-|------------|-----------------------------------------------------------------------------|
-| `core/`    | Static libs and the shared `KomaroCore` QML module; no UI shell of its own  |
-| `desktop/` | `MenuBar` shell (`komaro_qml_desktop`)                                      |
-| `mobile/`  | `ToolBar`+`Drawer` (Material Dark) shell; desktop prototype or Android APK  |
+```
+┌───────────┬──────────────────────────────────────────────────────────────────────────┐
+│ Directory │ What it is                                                               │
+├───────────┼──────────────────────────────────────────────────────────────────────────┤
+│ core/     │ Static libs and the shared KomaroCore QML module; no UI shell of its own │
+│ desktop/  │ MenuBar shell (komaro_qml_desktop)                                       │
+│ mobile/   │ ToolBar+Drawer (Material Dark) shell; desktop prototype or Android APK   │
+└───────────┴──────────────────────────────────────────────────────────────────────────┘
+```
 
 Other files: `KB.md` (Qt/QML topics and gotchas), `TODO.md` (what is outstanding),
 `screenshots/`.
@@ -128,10 +132,14 @@ On Linux:
 
 The install also registers the app with the desktop environment:
 
-| Source                               | Installed to                                  |
-|--------------------------------------|-----------------------------------------------|
-| `desktop/komaro-desktop.desktop`     | `share/applications/`                         |
-| `desktop/icons/komaro-desktop.svg`   | `share/icons/hicolor/scalable/apps/`          |
+```
+┌──────────────────────────────────┬────────────────────────────────────┐
+│ Source                           │ Installed to                       │
+├──────────────────────────────────┼────────────────────────────────────┤
+│ desktop/komaro-desktop.desktop   │ share/applications/                │
+│ desktop/icons/komaro-desktop.svg │ share/icons/hicolor/scalable/apps/ │
+└──────────────────────────────────┴────────────────────────────────────┘
+```
 
 The `.desktop` file is a standard freedesktop.org menu entry. The icon is a small dual-line chart
 in the app's own temperature/humidity colors. Once installed under `$XDG_DATA_HOME`
