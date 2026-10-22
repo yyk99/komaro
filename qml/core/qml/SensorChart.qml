@@ -29,10 +29,36 @@ Item {
 
     readonly property color temperatureColor: "#e06666"
     readonly property color humidityColor: "#6fa8dc"
-    // Cycled by series index so any number of overlaid measurements stays
-    // distinguishable; same 4-pattern vocabulary matplotlib's default style
-    // cycle uses (solid/dashed/dash-dot/dotted).
-    readonly property var dashPatterns: [[], [6, 4], [6, 3, 1, 3], [1, 3]]
+    // Per-series line style, cycled by series index:
+    //   1-4:  the original matplotlib-style dashes (solid/dashed/dash-dot/dotted)
+    //   5-8:  solid with a marker (-x-, -o-, -s-, -^-)
+    //   9-12: more plain dash patterns (long dash, dash-dot-dot, fine dash, sparse dots)
+    //   13+:  every dash pattern except solid combined with every marker
+    // Wraps after 40 distinct styles.
+    readonly property var seriesStyles: {
+        const dashes = [[], [6, 4], [6, 3, 1, 3], [1, 3],
+                        [12, 4], [6, 3, 1, 3, 1, 3], [3, 2], [1, 7]]
+        const markers = ["x", "circle", "square", "triangle"]
+        const styles = []
+        for (let i = 0; i < 4; ++i) {
+            styles.push({ dash: dashes[i], marker: "" })
+        }
+        for (const m of markers) {
+            styles.push({ dash: dashes[0], marker: m })
+        }
+        for (let i = 4; i < dashes.length; ++i) {
+            styles.push({ dash: dashes[i], marker: "" })
+        }
+        for (let i = 1; i < dashes.length; ++i) {
+            for (const m of markers) {
+                styles.push({ dash: dashes[i], marker: m })
+            }
+        }
+        return styles
+    }
+    // Pixel distance between markers along a line - data is dense (~5 min
+    // samples), so marking every point would drown the line.
+    readonly property real markerSpacing: 60
 
     // Horizontal-only margins, shared between onPaint's drawing and the
     // hairline/zoom hit-testing below - both need to agree on the same
@@ -339,7 +365,24 @@ Item {
                 ctx.fillText(root.formatTime(tTime), xFor(tTime), marginTop + plotHeight + 6)
             }
 
-            function drawLine(points, valueKey, range, color, dash) {
+            function drawMarker(shape, x, y) {
+                const r = 3.5
+                ctx.beginPath()
+                if (shape === "x") {
+                    ctx.moveTo(x - r, y - r); ctx.lineTo(x + r, y + r)
+                    ctx.moveTo(x + r, y - r); ctx.lineTo(x - r, y + r)
+                } else if (shape === "circle") {
+                    ctx.arc(x, y, r, 0, 2 * Math.PI)
+                } else if (shape === "square") {
+                    ctx.rect(x - r, y - r, 2 * r, 2 * r)
+                } else if (shape === "triangle") {
+                    ctx.moveTo(x, y - r); ctx.lineTo(x + r, y + r); ctx.lineTo(x - r, y + r)
+                    ctx.closePath()
+                }
+                ctx.stroke()
+            }
+
+            function drawLine(points, valueKey, range, color, dash, marker) {
                 ctx.strokeStyle = color
                 ctx.lineWidth = 1.5
                 ctx.setLineDash(dash)
@@ -355,12 +398,24 @@ Item {
                 }
                 ctx.stroke()
                 ctx.setLineDash([])
+
+                if (marker !== "") {
+                    let lastX = -Infinity
+                    for (let i = 0; i < points.length; ++i) {
+                        const x = xFor(points[i].time)
+                        if (x - lastX < root.markerSpacing) {
+                            continue
+                        }
+                        lastX = x
+                        drawMarker(marker, x, yFor(points[i][valueKey], range))
+                    }
+                }
             }
 
             for (let s = 0; s < nonEmptySeries.length; ++s) {
-                const dash = root.dashPatterns[s % root.dashPatterns.length]
-                drawLine(nonEmptySeries[s].points, "temperatureC", tempRange, root.temperatureColor, dash)
-                drawLine(nonEmptySeries[s].points, "humidity", humidRange, root.humidityColor, dash)
+                const style = root.seriesStyles[s % root.seriesStyles.length]
+                drawLine(nonEmptySeries[s].points, "temperatureC", tempRange, root.temperatureColor, style.dash, style.marker)
+                drawLine(nonEmptySeries[s].points, "humidity", humidRange, root.humidityColor, style.dash, style.marker)
             }
 
             // Legend: one row, sampling each series' dash pattern so it
@@ -371,16 +426,19 @@ Item {
             const legendY = 4
             let lx = marginLeft + 8
             for (let s = 0; s < nonEmptySeries.length; ++s) {
-                const dash = root.dashPatterns[s % root.dashPatterns.length]
+                const style = root.seriesStyles[s % root.seriesStyles.length]
 
                 ctx.strokeStyle = "#cccccc"
                 ctx.lineWidth = 1.5
-                ctx.setLineDash(dash)
+                ctx.setLineDash(style.dash)
                 ctx.beginPath()
                 ctx.moveTo(lx, legendY + 6)
                 ctx.lineTo(lx + 24, legendY + 6)
                 ctx.stroke()
                 ctx.setLineDash([])
+                if (style.marker !== "") {
+                    drawMarker(style.marker, lx + 12, legendY + 6)
+                }
                 lx += 30
 
                 ctx.fillStyle = "#cccccc"
