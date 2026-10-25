@@ -38,6 +38,31 @@ MQTT topics published:
 - `<topic_prefix>/humidity` - relative humidity in percent
 - `<topic_prefix>/dht11` - combined, in InfluxDB line protocol format (e.g. `dht11 temperature_c=21.10,humidity=31.00`)
 
+## serial_reader.sh
+
+Same as `dht11_reader.sh`, but for a DHT22 attached to a Raspberry Pi Pico that
+pretends to be the `/dev/dht11` driver. The Pico prints one reading every 2 s to
+its USB serial port, in the same format (`T: 18.50C H: 28.00%`).
+The firmware is the `dht22_driver` project of the pico_getting_started repo.
+
+A serial port never ends, so `cat /dev/dht11` would hang. `serial_reader.sh` reads
+one line with `head -n1 /dev/dht11`; everything else (arguments, MQTT topics) is
+the same as in `dht11_reader.sh`.
+
+```
+./serial_reader.sh [topic_prefix] [mqtt_host]
+```
+
+`/dev/dht11` is a udev symlink to the Pico serial port (usually `/dev/ttyACM0`).
+The rule is `99-dht22.rules` in `dht22_driver/`:
+
+```
+sudo cp 99-dht22.rules /etc/udev/rules.d/
+sudo udevadm control --reload-rules && sudo udevadm trigger
+```
+
+Then replug the Pico. Your user needs to be in the `dialout` group.
+
 ## subscribe to topics
 
 ```
