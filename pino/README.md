@@ -41,27 +41,21 @@ MQTT topics published:
 ## serial_reader.sh
 
 Same as `dht11_reader.sh`, but for a DHT22 attached to a Raspberry Pi Pico that
-pretends to be the `/dev/dht11` driver. The Pico prints one reading every 2 s to
-its USB serial port, in the same format (`T: 18.50C H: 28.00%`).
+prints one reading every 2 s to its USB serial port, in the same format
+(`T: 18.50C H: 28.00%`).
 The firmware is the `dht22_driver` project of the pico_getting_started repo.
 
-A serial port never ends, so `cat /dev/dht11` would hang. `serial_reader.sh` reads
-one line with `head -n1 /dev/dht11`; everything else (arguments, MQTT topics) is
-the same as in `dht11_reader.sh`.
+A serial port never ends, so `cat` would hang. `serial_reader.sh` puts the port
+in raw mode and reads one line (giving up after 5 s); everything else (MQTT topics)
+is the same as in `dht11_reader.sh`.
 
 ```
-./serial_reader.sh [topic_prefix] [mqtt_host]
+./serial_reader.sh [topic_prefix] [mqtt_host] [serial_device]
 ```
 
-`/dev/dht11` is a udev symlink to the Pico serial port (usually `/dev/ttyACM0`).
-The rule is `99-dht22.rules` in `dht22_driver/`:
+- `serial_device` - the Pico serial port (default: `/dev/ttyACM0`)
 
-```
-sudo cp 99-dht22.rules /etc/udev/rules.d/
-sudo udevadm control --reload-rules && sudo udevadm trigger
-```
-
-Then replug the Pico. Your user needs to be in the `dialout` group.
+Your user needs to be in the `dialout` group to open the port.
 
 ## subscribe to topics
 
