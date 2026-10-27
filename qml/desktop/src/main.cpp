@@ -1,4 +1,5 @@
 #include <QGuiApplication>
+#include <QIcon>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 
@@ -15,6 +16,20 @@ int main(int argc, char *argv[])
     // (QmlApp.conf) while ConnectionManager forces IniFormat (QmlApp.ini).
     QCoreApplication::setOrganizationName(QStringLiteral("Komaro"));
     QCoreApplication::setApplicationName(QStringLiteral("QmlApp"));
+
+    // Window icon: the app-id (Wayland) / WM_CLASS must match the installed
+    // komaro-desktop.desktop for the shell to pick up its Icon= entry; Qt
+    // otherwise defaults it to the executable name (komaro_qml_desktop).
+    // The theme lookup covers an installed icon; the bundled SVG covers
+    // running from a build tree (needs the Qt SVG image plugin).
+    QGuiApplication::setDesktopFileName(QStringLiteral("komaro-desktop"));
+#ifdef KOMARO_HAVE_QT_SVG
+    QGuiApplication::setWindowIcon(QIcon::fromTheme(
+        QStringLiteral("komaro-desktop"),
+        QIcon(QStringLiteral(":/icons/komaro-desktop.svg"))));
+#else
+    QGuiApplication::setWindowIcon(QIcon::fromTheme(QStringLiteral("komaro-desktop")));
+#endif
 
     QQmlApplicationEngine engine;
     QObject::connect(
