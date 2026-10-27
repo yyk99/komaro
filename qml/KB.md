@@ -53,6 +53,8 @@ This choice was made together with recording the touch-gesture decision itself i
 
 **Verifying:** run the app under X11 and check `xprop -id <window> WM_CLASS _NET_WM_ICON` - `_NET_WM_ICON` is present once `setWindowIcon` took effect. After reinstalling, copy the new `.desktop` file into place and re-login (or restart the shell) so the shell re-reads it.
 
+**Follow-up (Raspberry Pi / labwc):** the fix above targets native Wayland, but the self-built Qt there has no `wayland` platform plugin, so the app falls back to xcb and runs under XWayland. `setDesktopFileName` is then a no-op, and labwc 0.8.4 reports `WM_CLASS`'s first string (the executable name, `komaro_qml_desktop` - confirmed with an `ext-foreign-toplevel-list` client) as the app-id, so the panel looks for `komaro_qml_desktop.desktop` or a `komaro_qml_desktop` icon. `_NET_WM_ICON` was already correct; it's just not drawn by labwc. Fix: install `komaro_qml_desktop.desktop` (`NoDisplay=true`) and a `komaro_qml_desktop.svg` copy of the icon alongside the real ones. Building `qtwayland` would make the original fix take effect instead. Re-login (or restart the panel) after reinstalling.
+
 ## Visually verifying a QML component without running the full app
 
 Useful when a change touches rendering (e.g. a `Canvas`-based chart) and you want to confirm actual pixels, not just that the code compiles.
