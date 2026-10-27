@@ -35,6 +35,24 @@ This choice was made together with recording the touch-gesture decision itself i
 
 **Touch note:** double-tap-to-zoom works on Android (verified on a physical tablet) purely because it's the same shared `MouseArea` code as desktop - it was not built as a native pinch gesture. Real pinch-to-zoom (`PinchHandler`, computing a scale factor and centroid, mapping that to a time-window resize) is a materially separate addition and remains a possible follow-up, not part of this pass.
 
+## Why the desktop app's icon was missing from the running window (and the fix)
+
+**Symptom:** after `cmake --install`, `komaro-desktop.svg` and `komaro-desktop.desktop` were in `~/.local/share/{icons/hicolor/scalable/apps,applications}` and the launcher/app grid showed the icon, but the *running* window had none.
+
+**Cause:** the installed icon is only reachable through the `.desktop` file's `Icon=komaro-desktop` line. A shell links a running window to that file by matching the window's identity, and nothing made them match:
+
+- **Wayland:** the window's app-id is matched against the `.desktop` file name. Qt defaults the app-id to the executable name (`komaro_qml_desktop`), not `komaro-desktop`.
+- **X11:** the match is `WM_CLASS` against `StartupWMClass=` (absent from the file). Qt sets `WM_CLASS` to `(<executable name>, <applicationName>)`, so here it is `"komaro_qml_desktop", "QmlApp"` - the *class* comes from `setApplicationName("QmlApp")` in `main.cpp`, not from the `.desktop` name.
+- The app never set a window icon itself (`QGuiApplication::setWindowIcon`), so there was no fallback; running straight from the build tree (nothing installed) could never show one.
+
+**Fix:**
+
+- `desktop/src/main.cpp`: `QGuiApplication::setDesktopFileName("komaro-desktop")` (fixes the Wayland match) and `setWindowIcon(QIcon::fromTheme("komaro-desktop", QIcon(":/icons/komaro-desktop.svg")))` - theme icon when installed, the bundled SVG otherwise.
+- `desktop/CMakeLists.txt`: embeds `icons/komaro-desktop.svg` with `qt_add_resources` (prefix `/icons`), and links `Qt6::Svg` if the kit has it (defining `KOMARO_HAVE_QT_SVG`), since the SVG resource needs Qt's SVG image plugin to render. Without it the app still builds and falls back to the theme icon only.
+- `desktop/komaro-desktop.desktop`: `StartupWMClass=QmlApp` (the X11 class above). Note that `komaro-mobile` shares the same application name, so its `.desktop` file would need the same value if it is ever run as a desktop prototype.
+
+**Verifying:** run the app under X11 and check `xprop -id <window> WM_CLASS _NET_WM_ICON` - `_NET_WM_ICON` is present once `setWindowIcon` took effect. After reinstalling, copy the new `.desktop` file into place and re-login (or restart the shell) so the shell re-reads it.
+
 ## Visually verifying a QML component without running the full app
 
 Useful when a change touches rendering (e.g. a `Canvas`-based chart) and you want to confirm actual pixels, not just that the code compiles.

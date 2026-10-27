@@ -7,6 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 QmlCore)
+# Only needed to render the SVG window icon (see main.cpp); without it the
+# app still builds, it just relies on the installed hicolor theme icon.
+find_package(Qt6 OPTIONAL_COMPONENTS Svg)
 
 qt_standard_project_setup()
 
@@ -65,6 +68,19 @@ target_link_libraries(komaro_qml_desktop PRIVATE
     Qt6::Quick
     Qt6::QmlCore
 )
+
+# Window icon for the running app (QGuiApplication::setWindowIcon): the
+# installed hicolor icon is only found via the .desktop entry, which doesn't
+# help when running from a build tree or on shells that don't match app-ids.
+qt_add_resources(komaro_qml_desktop komaro_desktop_icon
+    PREFIX /icons
+    BASE ${CMAKE_CURRENT_SOURCE_DIR}/icons
+    FILES icons/komaro-desktop.svg
+)
+if(TARGET Qt6::Svg)
+    target_link_libraries(komaro_qml_desktop PRIVATE Qt6::Svg)
+    target_compile_definitions(komaro_qml_desktop PRIVATE KOMARO_HAVE_QT_SVG)
+endif()
 
 qt_import_qml_plugins(komaro_qml_desktop)
 

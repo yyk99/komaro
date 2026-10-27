@@ -6,3 +6,4 @@ Exec=komaro_qml_desktop
 Icon=komaro-desktop
 Categories=Utility;
 Terminal=false
+StartupWMClass=QmlApp
