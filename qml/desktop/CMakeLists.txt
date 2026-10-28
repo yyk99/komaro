@@ -163,6 +163,18 @@ if(UNIX AND NOT APPLE)
     install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/icons/komaro-desktop.svg"
         DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps
     )
+    # XWayland alias: when Qt has no wayland platform plugin (e.g. the
+    # self-built kit on the Raspberry Pi) the app runs under xcb, and labwc
+    # reports WM_CLASS's first string (the executable name) as the app-id, so
+    # the panel looks for komaro_qml_desktop.desktop / a komaro_qml_desktop
+    # icon. Hidden from menus (NoDisplay=true).
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/komaro_qml_desktop.desktop"
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications
+    )
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/icons/komaro-desktop.svg"
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps
+        RENAME komaro_qml_desktop.svg
+    )
 endif()
 
 qt_generate_deploy_app_script(
