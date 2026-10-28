@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(komaro_qml_desktop LANGUAGES CXX)
+project(komaro-desktop LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -32,7 +32,7 @@ endif()
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../core ${CMAKE_CURRENT_BINARY_DIR}/core)
 
-qt_add_executable(komaro_qml_desktop
+qt_add_executable(komaro-desktop
     src/main.cpp
 )
 
@@ -47,7 +47,7 @@ add_custom_target(touch
 # See core/CMakeLists.txt for why QTP0004 is set explicitly.
 qt_policy(SET QTP0004 NEW)
 
-qt_add_qml_module(komaro_qml_desktop
+qt_add_qml_module(komaro-desktop
     URI KomaroDesktop
     VERSION 1.0
     RESOURCE_PREFIX /qt/qml
@@ -55,11 +55,11 @@ qt_add_qml_module(komaro_qml_desktop
         qml/Main.qml
 )
 
-set_target_properties(komaro_qml_desktop PROPERTIES
+set_target_properties(komaro-desktop PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
-target_link_libraries(komaro_qml_desktop PRIVATE
+target_link_libraries(komaro-desktop PRIVATE
     komaro_core
     komaro_core_qml
     Qt6::Core
@@ -72,29 +72,29 @@ target_link_libraries(komaro_qml_desktop PRIVATE
 # Window icon for the running app (QGuiApplication::setWindowIcon): the
 # installed hicolor icon is only found via the .desktop entry, which doesn't
 # help when running from a build tree or on shells that don't match app-ids.
-qt_add_resources(komaro_qml_desktop komaro_desktop_icon
+qt_add_resources(komaro-desktop komaro_desktop_icon
     PREFIX /icons
     BASE ${CMAKE_CURRENT_SOURCE_DIR}/icons
     FILES icons/komaro-desktop.svg
 )
 if(TARGET Qt6::Svg)
-    target_link_libraries(komaro_qml_desktop PRIVATE Qt6::Svg)
-    target_compile_definitions(komaro_qml_desktop PRIVATE KOMARO_HAVE_QT_SVG)
+    target_link_libraries(komaro-desktop PRIVATE Qt6::Svg)
+    target_compile_definitions(komaro-desktop PRIVATE KOMARO_HAVE_QT_SVG)
 endif()
 
-qt_import_qml_plugins(komaro_qml_desktop)
+qt_import_qml_plugins(komaro-desktop)
 
 get_target_property(_qt6_qmake_executable Qt6::qmake IMPORTED_LOCATION)
 get_filename_component(_qt6_bin_dir "${_qt6_qmake_executable}" DIRECTORY)
 find_program(WINDEPLOYQT_EXECUTABLE windeployqt PATHS "${_qt6_bin_dir}" NO_DEFAULT_PATH)
 
 if(WINDEPLOYQT_EXECUTABLE)
-    add_custom_command(TARGET komaro_qml_desktop POST_BUILD
+    add_custom_command(TARGET komaro-desktop POST_BUILD
         COMMAND "${WINDEPLOYQT_EXECUTABLE}"
                 --verbose 0
                 --qmldir "${CMAKE_CURRENT_SOURCE_DIR}/qml"
-                "$<TARGET_FILE:komaro_qml_desktop>"
-        COMMENT "Deploying Qt runtime dependencies for komaro_qml_desktop"
+                "$<TARGET_FILE:komaro-desktop>"
+        COMMENT "Deploying Qt runtime dependencies for komaro-desktop"
     )
 else()
     message(WARNING "windeployqt not found under ${_qt6_bin_dir}; Qt runtime dependencies will not be deployed automatically")
@@ -115,7 +115,7 @@ include(GNUInstallDirs)
 
 if(UNIX AND NOT APPLE)
     # Qt's QML plugins are loaded via dlopen() at runtime, not linked
-    # directly into komaro_qml_desktop, so they don't inherit its
+    # directly into komaro-desktop, so they don't inherit its
     # $ORIGIN-relative RPATH when resolving THEIR OWN transitive
     # dependencies - RUNPATH (which CMake sets by default, unlike the
     # older, transitively-inherited RPATH) only governs a binary's own
@@ -126,21 +126,21 @@ if(UNIX AND NOT APPLE)
     # from the ABI mismatch. LD_LIBRARY_PATH, unlike RPATH/RUNPATH, applies
     # to every dlopen() in the process, so a thin wrapper script that sets
     # it fixes this without requiring the user to set anything themselves.
-    install(TARGETS komaro_qml_desktop
+    install(TARGETS komaro-desktop
         RUNTIME DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     )
 
-    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/komaro_qml_desktop-wrapper.sh" [[#!/bin/sh
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/komaro-desktop-wrapper.sh" [[#!/bin/sh
 here="$(cd "$(dirname "$0")" && pwd)"
-exec env LD_LIBRARY_PATH="$here/../lib:$LD_LIBRARY_PATH" "$here/../libexec/komaro_qml_desktop" "$@"
+exec env LD_LIBRARY_PATH="$here/../lib:$LD_LIBRARY_PATH" "$here/../libexec/komaro-desktop" "$@"
 ]])
-    install(PROGRAMS "${CMAKE_CURRENT_BINARY_DIR}/komaro_qml_desktop-wrapper.sh"
+    install(PROGRAMS "${CMAKE_CURRENT_BINARY_DIR}/komaro-desktop-wrapper.sh"
         DESTINATION ${CMAKE_INSTALL_BINDIR}
-        RENAME komaro_qml_desktop
+        RENAME komaro-desktop
     )
 else()
-    install(TARGETS komaro_qml_desktop
+    install(TARGETS komaro-desktop
         BUNDLE DESTINATION .
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -154,7 +154,7 @@ if(UNIX AND NOT APPLE)
     # in the .desktop file is a theme-relative name, not a path, so it's
     # looked up by icon loaders against every installed theme's directories
     # (falling back to hicolor) rather than needing an absolute path. Relies
-    # on ~/.local/bin being on PATH for Exec=komaro_qml_desktop to resolve -
+    # on ~/.local/bin being on PATH for Exec=komaro-desktop to resolve -
     # true by default on Ubuntu when installing to the linux-ubuntu preset's
     # $env{HOME}/.local prefix.
     install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/komaro-desktop.desktop"
@@ -163,29 +163,17 @@ if(UNIX AND NOT APPLE)
     install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/icons/komaro-desktop.svg"
         DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps
     )
-    # XWayland alias: when Qt has no wayland platform plugin (e.g. the
-    # self-built kit on the Raspberry Pi) the app runs under xcb, and labwc
-    # reports WM_CLASS's first string (the executable name) as the app-id, so
-    # the panel looks for komaro_qml_desktop.desktop / a komaro_qml_desktop
-    # icon. Hidden from menus (NoDisplay=true).
-    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/komaro_qml_desktop.desktop"
-        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications
-    )
-    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/icons/komaro-desktop.svg"
-        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps
-        RENAME komaro_qml_desktop.svg
-    )
 endif()
 
 qt_generate_deploy_app_script(
-    TARGET komaro_qml_desktop
+    TARGET komaro-desktop
     OUTPUT_SCRIPT deploy_script
     NO_UNSUPPORTED_PLATFORM_ERROR
 )
 install(SCRIPT ${deploy_script})
 
 # qt_generate_deploy_app_script()'s generated script only deploys shared
-# library dependencies of komaro_qml_desktop ITSELF (qt6_deploy_runtime_
+# library dependencies of komaro-desktop ITSELF (qt6_deploy_runtime_
 # dependencies) - it does NOT deploy Qt's own QML modules (QtQuick,
 # QtQuick.Controls, QtQuick.Layouts, QtCore's Settings, ...) even though
 # Main.qml imports them, so a standalone install previously failed at
@@ -200,9 +188,9 @@ install(SCRIPT ${deploy_script})
 # Qt6 packages instead - confirmed by testing: this exact gap caused an
 # undefined-symbol crash from Ubuntu's system libQt6QuickTemplates2.so.6.
 install(CODE [[
-qt6_deploy_qml_imports(TARGET komaro_qml_desktop PLUGINS_FOUND qml_plugin_libs)
+qt6_deploy_qml_imports(TARGET komaro-desktop PLUGINS_FOUND qml_plugin_libs)
 qt6_deploy_runtime_dependencies(
-    EXECUTABLE "$<TARGET_FILE:komaro_qml_desktop>"
+    EXECUTABLE "$<TARGET_FILE:komaro-desktop>"
     ADDITIONAL_MODULES ${qml_plugin_libs}
     NO_TRANSLATIONS
 )

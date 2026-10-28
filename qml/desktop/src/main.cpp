@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
 
     // Window icon: the app-id (Wayland) / WM_CLASS must match the installed
     // komaro-desktop.desktop for the shell to pick up its Icon= entry; Qt
-    // otherwise defaults it to the executable name (komaro_qml_desktop).
+    // otherwise defaults it to the executable name (komaro-desktop).
     // The theme lookup covers an installed icon; the bundled SVG covers
     // running from a build tree (needs the Qt SVG image plugin).
     QGuiApplication::setDesktopFileName(QStringLiteral("komaro-desktop"));
