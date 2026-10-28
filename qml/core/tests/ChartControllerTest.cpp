@@ -87,7 +87,7 @@ TEST(ChartControllerTest, LoadDefaultsBlankMeasurementToSensor)
 
     ASSERT_TRUE(waitForUpdate(controller));
 
-    EXPECT_TRUE(server.lastRequestLine().contains(QStringLiteral("FROM%20sensor")));
+    EXPECT_TRUE(server.lastRequestLine().contains(QStringLiteral("FROM%20%22sensor%22")));
 }
 
 TEST(ChartControllerTest, LoadRemembersMeasurementAtFrontOfRecentMeasurements)

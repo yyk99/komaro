@@ -56,13 +56,21 @@ QueryResult runQuery(InfluxDbClient &client, const QString &influxQl, int timeou
 TEST(InfluxDbClientTest, BuildSelectQueryAddsTimeRangeClause)
 {
     EXPECT_EQ(InfluxDbClient::buildSelectQuery(QStringLiteral("sensor"), QStringLiteral("1h")),
-              QStringLiteral("SELECT temperature_c, humidity FROM sensor WHERE time > now() - 1h"));
+              QStringLiteral("SELECT temperature_c, humidity FROM \"sensor\" WHERE time > now() - 1h"));
 }
 
 TEST(InfluxDbClientTest, BuildSelectQueryOmitsClauseForAll)
 {
     EXPECT_EQ(InfluxDbClient::buildSelectQuery(QStringLiteral("sensor"), QStringLiteral("all")),
-              QStringLiteral("SELECT temperature_c, humidity FROM sensor"));
+              QStringLiteral("SELECT temperature_c, humidity FROM \"sensor\""));
+}
+
+TEST(InfluxDbClientTest, BuildSelectQueryQuotesHyphenatedAndEscapesSpecials)
+{
+    EXPECT_EQ(InfluxDbClient::buildSelectQuery(QStringLiteral("oled-sensor"), QStringLiteral("all")),
+              QStringLiteral("SELECT temperature_c, humidity FROM \"oled-sensor\""));
+    EXPECT_EQ(InfluxDbClient::buildSelectQuery(QStringLiteral("a\"b"), QStringLiteral("all")),
+              QStringLiteral("SELECT temperature_c, humidity FROM \"a\\\"b\""));
 }
 
 TEST(InfluxDbClientTest, QueryEmitsSucceededWithParsedPoints)

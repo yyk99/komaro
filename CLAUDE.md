@@ -92,3 +92,7 @@ For `qml/` on the Raspberry Pi Linux dev box (the `linux-rpi` preset): Ninja Mul
 - `gh` isn't installed on the Raspberry Pi dev box, so PRs there are opened via the `pull/new/<branch>` URL that `git push` prints
 - Pull request titles should NOT include the PR id - GitHub assigns the id when the PR is created, and a title set at creation time can't know it yet
 - The squash-merge commit message must include the PR id as a `(#<id>)` suffix, e.g. `Add units toggle, persisted UI prefs, and Android build docs (#7)` - `gh pr merge --squash` appends this automatically from the PR title, but an explicit `--subject` bypasses that, so append `(#<id>)` by hand when using `--subject`
+
+## TODO
+
+- **Rename the desktop app executable to `komaro-desktop`** (currently `komaro_qml_desktop`). Under XWayland (the `linux-rpi` Qt kit has no `wayland` plugin) labwc reports the executable name as the window's app-id, so the panel only finds the icon when that name matches the `.desktop` file/icon name. #37 worked around the mismatch with hidden `komaro_qml_desktop.desktop` + `komaro_qml_desktop.svg` alias files (see `qml/KB.md`). Renaming the CMake target, install wrapper, `Exec=`, and docs would let those alias files be removed; it matches `komaro-digest` in the suziepi-touchscreen project, whose executable name already equals its `.desktop`/icon name. Untested. The alternative (renaming the `.desktop` file and icon to `komaro_qml_desktop`) is smaller but leaves the names inconsistent and requires updating `setDesktopFileName` in `desktop/src/main.cpp`.

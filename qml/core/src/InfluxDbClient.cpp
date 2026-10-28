@@ -19,7 +19,11 @@ InfluxDbClient::InfluxDbClient(QString host, quint16 port, QString database, QOb
 
 QString InfluxDbClient::buildSelectQuery(const QString &measurement, const QString &timeRange)
 {
-    QString query = QStringLiteral("SELECT temperature_c, humidity FROM %1").arg(measurement);
+    // Double-quote the identifier so names with '-' or '.' (e.g. "oled-sensor") parse as one name.
+    QString quoted = measurement;
+    quoted.replace(QLatin1Char('\\'), QStringLiteral("\\\\"));
+    quoted.replace(QLatin1Char('"'), QStringLiteral("\\\""));
+    QString query = QStringLiteral("SELECT temperature_c, humidity FROM \"%1\"").arg(quoted);
     if (timeRange != QStringLiteral("all")) {
         query += QStringLiteral(" WHERE time > now() - %1").arg(timeRange);
     }
