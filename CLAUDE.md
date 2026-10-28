@@ -89,6 +89,6 @@ For `qml/` on the Raspberry Pi Linux dev box (the `linux-rpi` preset): Ninja Mul
 - Main branch: `master`
 - Issue-driven development is the recommended workflow: file a GitHub issue first, then branch from it
 - Branch naming: `f/<username>/<feature>`, or `f/<username>/<issue-id>-<branch-name>` for issue-driven work, e.g. `f/yyk99/19-linux-base-preset` for issue #19
-- `gh` isn't installed on the Raspberry Pi dev box, so PRs there are opened via the `pull/new/<branch>` URL that `git push` prints
+- `gh` is installed on the Raspberry Pi dev box (Debian's 2.23.0 from apt) and logged in, so PRs there can be opened and merged with it
 - Pull request titles should NOT include the PR id - GitHub assigns the id when the PR is created, and a title set at creation time can't know it yet
 - The squash-merge commit message must include the PR id as a `(#<id>)` suffix, e.g. `Add units toggle, persisted UI prefs, and Android build docs (#7)` - `gh pr merge --squash` appends this automatically from the PR title, but an explicit `--subject` bypasses that, so append `(#<id>)` by hand when using `--subject`
