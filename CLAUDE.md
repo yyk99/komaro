@@ -30,7 +30,7 @@ A C++/QML app that queries InfluxDB and charts temperature/humidity, mirroring `
 - `qml/core/` - static libs shared by both shells, no UI of its own:
   - `komaro_core` - `InfluxResponseParser`, `InfluxDbClient` (async `QNetworkAccessManager`), `RecentServers`, `MovingAverage`, `ChartController`, `ConnectionManager`, `SensorPoint`. GTest suite in `tests/` (`BUILD_TESTS` cache var, default `ON`).
   - `komaro_core_qml` - QML module `KomaroCore`: `AppActions.qml` (shared Connect/About/Exit actions) and `SensorChart.qml` (hand-rolled `Canvas` dual-axis chart - no Qt Charts/Graphs installed in the Qt kit). Each overlaid measurement gets a style from `SensorChart.qml`'s `seriesStyles` (40 dash/marker combinations, cycled by series index; the first 4 are the original solid/dashed/dash-dot/dotted lines). The plot lines and the legend both read from it, so add new styles there only.
-- `qml/desktop/` - `MenuBar` shell (`komaro_qml_desktop`).
+- `qml/desktop/` - `MenuBar` shell (`komaro-desktop`).
 - `qml/mobile/` - `ToolBar`+`Drawer` (Material Dark) shell (`komaro_qml_mobile`), buildable as either a desktop prototype or a real Android APK.
 
 Build/test (see `qml/README.md`, `qml/core/README.md`, `qml/mobile/README.md` for full detail):
@@ -89,10 +89,6 @@ For `qml/` on the Raspberry Pi Linux dev box (the `linux-rpi` preset): Ninja Mul
 - Main branch: `master`
 - Issue-driven development is the recommended workflow: file a GitHub issue first, then branch from it
 - Branch naming: `f/<username>/<feature>`, or `f/<username>/<issue-id>-<branch-name>` for issue-driven work, e.g. `f/yyk99/19-linux-base-preset` for issue #19
-- `gh` isn't installed on the Raspberry Pi dev box, so PRs there are opened via the `pull/new/<branch>` URL that `git push` prints
+- `gh` is installed on the Raspberry Pi dev box (Debian's 2.23.0 from apt) and logged in, so PRs there can be opened and merged with it
 - Pull request titles should NOT include the PR id - GitHub assigns the id when the PR is created, and a title set at creation time can't know it yet
 - The squash-merge commit message must include the PR id as a `(#<id>)` suffix, e.g. `Add units toggle, persisted UI prefs, and Android build docs (#7)` - `gh pr merge --squash` appends this automatically from the PR title, but an explicit `--subject` bypasses that, so append `(#<id>)` by hand when using `--subject`
-
-## TODO
-
-- **Rename the desktop app executable to `komaro-desktop`** (currently `komaro_qml_desktop`). Under XWayland (the `linux-rpi` Qt kit has no `wayland` plugin) labwc reports the executable name as the window's app-id, so the panel only finds the icon when that name matches the `.desktop` file/icon name. #37 worked around the mismatch with hidden `komaro_qml_desktop.desktop` + `komaro_qml_desktop.svg` alias files (see `qml/KB.md`). Renaming the CMake target, install wrapper, `Exec=`, and docs would let those alias files be removed; it matches `komaro-digest` in the suziepi-touchscreen project, whose executable name already equals its `.desktop`/icon name. Untested. The alternative (renaming the `.desktop` file and icon to `komaro_qml_desktop`) is smaller but leaves the names inconsistent and requires updating `setDesktopFileName` in `desktop/src/main.cpp`.

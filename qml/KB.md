@@ -8,7 +8,7 @@ Notes on QML/Qt topics for this project that don't belong in `README.md` (which 
 
 **The gap this causes:** an RPATH/RUNPATH set on the main executable only governs resolution of *that binary's own* `DT_NEEDED` entries - it is not inherited by a library the process later `dlopen()`s, so that library's *own* transitive dependencies fall back to the system's normal search path. On this Ubuntu dev box that's a real collision, not a hypothetical one: Ubuntu ships its own `libQt6QuickTemplates2.so.6` system package, a different (ABI-incompatible) build than ours. Installing to a plain `~/.local` and running the binary directly loaded `QtQuick.Controls`'s plugin fine, but *that plugin's* dependency on `libQt6QuickTemplates2.so.6` resolved to the system copy instead of the bundled one, crashing with an undefined-symbol error the first time a `Control` was instantiated - a failure mode that only shows up once you actually exercise a QML type from the affected module, not at plain startup.
 
-`LD_LIBRARY_PATH`, unlike RPATH/RUNPATH, applies to *every* `dlopen()` in the process, so it's the fix that actually reaches the QML plugins' own dependencies. Rather than requiring the user to set it themselves, the install step installs the real binary to `libexec/komaro_qml_desktop` and puts a thin `bin/komaro_qml_desktop` wrapper script in its place that sets `LD_LIBRARY_PATH` relative to itself before `exec`ing the real one - a standard pattern for self-contained Linux app installs.
+`LD_LIBRARY_PATH`, unlike RPATH/RUNPATH, applies to *every* `dlopen()` in the process, so it's the fix that actually reaches the QML plugins' own dependencies. Rather than requiring the user to set it themselves, the install step installs the real binary to `libexec/komaro-desktop` and puts a thin `bin/komaro-desktop` wrapper script in its place that sets `LD_LIBRARY_PATH` relative to itself before `exec`ing the real one - a standard pattern for self-contained Linux app installs.
 
 **Related gap, same root cause:** `qt6_deploy_runtime_dependencies` (which copies shared-library dependencies) only scans the *executable's* dependency graph - it doesn't know about QML plugins deployed by a separate `qt6_deploy_qml_imports` call, since those plugin files don't exist on disk yet when the first scan runs. Fixed by capturing `qt6_deploy_qml_imports`'s `PLUGINS_FOUND` output and feeding it back into a second `qt6_deploy_runtime_dependencies` call's `ADDITIONAL_MODULES` argument, so the plugins' own dependencies (like the `QuickTemplates2` example above) get scanned and copied too - see the `install(CODE ...)` block in `desktop/CMakeLists.txt`.
 
@@ -41,8 +41,8 @@ This choice was made together with recording the touch-gesture decision itself i
 
 **Cause:** the installed icon is only reachable through the `.desktop` file's `Icon=komaro-desktop` line. A shell links a running window to that file by matching the window's identity, and nothing made them match:
 
-- **Wayland:** the window's app-id is matched against the `.desktop` file name. Qt defaults the app-id to the executable name (`komaro_qml_desktop`), not `komaro-desktop`.
-- **X11:** the match is `WM_CLASS` against `StartupWMClass=` (absent from the file). Qt sets `WM_CLASS` to `(<executable name>, <applicationName>)`, so here it is `"komaro_qml_desktop", "QmlApp"` - the *class* comes from `setApplicationName("QmlApp")` in `main.cpp`, not from the `.desktop` name.
+- **Wayland:** the window's app-id is matched against the `.desktop` file name. Qt defaults the app-id to the executable name (formerly `komaro_qml_desktop`, which did not match `komaro-desktop`; the executable is now named `komaro-desktop`, so the two agree).
+- **X11:** the match is `WM_CLASS` against `StartupWMClass=` (absent from the file). Qt sets `WM_CLASS` to `(<executable name>, <applicationName>)`, so here it is `"komaro-desktop", "QmlApp"` - the *class* comes from `setApplicationName("QmlApp")` in `main.cpp`, not from the `.desktop` name.
 - The app never set a window icon itself (`QGuiApplication::setWindowIcon`), so there was no fallback; running straight from the build tree (nothing installed) could never show one.
 
 **Fix:**
@@ -53,13 +53,13 @@ This choice was made together with recording the touch-gesture decision itself i
 
 **Verifying:** run the app under X11 and check `xprop -id <window> WM_CLASS _NET_WM_ICON` - `_NET_WM_ICON` is present once `setWindowIcon` took effect. After reinstalling, copy the new `.desktop` file into place and re-login (or restart the shell) so the shell re-reads it.
 
-**Follow-up (Raspberry Pi / labwc):** the fix above targets native Wayland, but the self-built Qt there has no `wayland` platform plugin, so the app falls back to xcb and runs under XWayland. `setDesktopFileName` is then a no-op, and labwc 0.8.4 reports `WM_CLASS`'s first string (the executable name, `komaro_qml_desktop` - confirmed with an `ext-foreign-toplevel-list` client) as the app-id, so the panel looks for `komaro_qml_desktop.desktop` or a `komaro_qml_desktop` icon. `_NET_WM_ICON` was already correct; it's just not drawn by labwc. Fix: install `komaro_qml_desktop.desktop` (`NoDisplay=true`) and a `komaro_qml_desktop.svg` copy of the icon alongside the real ones. Building `qtwayland` would make the original fix take effect instead. Re-login (or restart the panel) after reinstalling.
+**Follow-up (Raspberry Pi / labwc):** the self-built Qt there has no `wayland` platform plugin, so the app falls back to xcb and runs under XWayland. `setDesktopFileName` is then a no-op, and labwc 0.8.4 reports `WM_CLASS`'s first string (the executable name - confirmed with an `ext-foreign-toplevel-list` client) as the app-id, so the panel looks for `<executable>.desktop` or an icon of that name. `_NET_WM_ICON` was already correct; it's just not drawn by labwc. #37 first worked around this with hidden `komaro_qml_desktop.desktop`/`.svg` alias files; renaming the executable to `komaro-desktop` made it match the real `.desktop` file and icon, so the aliases were removed. Building `qtwayland` would make the original fix take effect instead. Re-login (or restart the panel) after reinstalling.
 
 ## Visually verifying a QML component without running the full app
 
 Useful when a change touches rendering (e.g. a `Canvas`-based chart) and you want to confirm actual pixels, not just that the code compiles.
 
-**Problem:** `komaro_qml_desktop`/`komaro_qml_mobile` need a live InfluxDB connection to populate the chart with real data. Waiting on that (or mocking the whole app) is overkill for checking a label or a layout tweak.
+**Problem:** `komaro-desktop`/`komaro_qml_mobile` need a live InfluxDB connection to populate the chart with real data. Waiting on that (or mocking the whole app) is overkill for checking a label or a layout tweak.
 
 **Technique:**
 

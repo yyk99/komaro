@@ -43,7 +43,7 @@ target_link_libraries(komaro_core PUBLIC
 )
 
 # Separate target from komaro_core: qt_add_qml_module's automatic plugin
-# linkage (into consumers like komaro_qml_desktop) is only fully wired up
+# linkage (into consumers like komaro-desktop) is only fully wired up
 # when it creates the backing library itself, not when attached to an
 # already-existing one.
 qt_add_library(komaro_core_qml STATIC)

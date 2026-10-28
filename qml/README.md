@@ -10,7 +10,7 @@ It is similar in purpose to the `nano/plot_sensor.py` / `nano/plot_multi_sensor.
 │ Directory │ What it is                                                               │
 ├───────────┼──────────────────────────────────────────────────────────────────────────┤
 │ core/     │ Static libs and the shared KomaroCore QML module; no UI shell of its own │
-│ desktop/  │ MenuBar shell (komaro_qml_desktop)                                       │
+│ desktop/  │ MenuBar shell (komaro-desktop)                                           │
 │ mobile/   │ ToolBar+Drawer (Material Dark) shell; desktop prototype or Android APK   │
 └───────────┴──────────────────────────────────────────────────────────────────────────┘
 ```
@@ -87,7 +87,7 @@ ctest --preset windows-msvc-debug
 
 - Executables land in `build/windows-msvc/bin/<Config>/`, libraries in
   `build/windows-msvc/lib/<Config>/`.
-- `windeployqt` runs automatically after a successful build, so `komaro_qml_desktop.exe` is
+- `windeployqt` runs automatically after a successful build, so `komaro-desktop.exe` is
   self-contained.
 
 ### Linux
@@ -117,13 +117,13 @@ The `windeployqt` post-build step does nothing on Linux.
 cmake --install build/<preset> --prefix <dir>
 ```
 
-This produces a redistributable copy of `komaro_qml_desktop` in `<dir>`, with Qt's runtime
+This produces a redistributable copy of `komaro-desktop` in `<dir>`, with Qt's runtime
 dependencies deployed into the install tree. It uses `windeployqt` on Windows and Qt's generic
 deploy tool on Linux.
 
 On Linux:
 
-- The real binary installs to `libexec/`. `bin/komaro_qml_desktop` is a thin wrapper script that
+- The real binary installs to `libexec/`. `bin/komaro-desktop` is a thin wrapper script that
   sets `LD_LIBRARY_PATH` and then execs it. See `KB.md` for why that is necessary.
 - The default install prefix on the `linux-ubuntu` preset is `$HOME/.local`. Run
   `cmake --install build/linux-ubuntu` with no `--prefix` to install there.

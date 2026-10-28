@@ -2,7 +2,7 @@
 Type=Application
 Name=Komaro Sensor Viewer
 Comment=View temperature/humidity sensor data from InfluxDB
-Exec=komaro_qml_desktop
+Exec=komaro-desktop
 Icon=komaro-desktop
 Categories=Utility;
 Terminal=false

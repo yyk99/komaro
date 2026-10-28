@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Komaro Sensor Viewer
-Exec=komaro_qml_desktop
-Icon=komaro-desktop
-NoDisplay=true
-Terminal=false
-StartupWMClass=QmlApp
