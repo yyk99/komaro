@@ -123,8 +123,8 @@ ApplicationWindow {
             Label { text: qsTr("Range:") }
             ComboBox {
                 id: timeRangeCombo
-                model: ["1h", "6h", "24h", "48h", "7d", "30d", "all"]
-                currentIndex: 4
+                model: ["1h", "6h", "12h", "24h", "48h", "7d", "30d", "all"]
+                currentIndex: 5
                 // While zoomed, show "Zoomed" instead of the current preset
                 // rather than faking an extra model entry - currentIndex
                 // (persisted via Settings) stays untouched either way.

@@ -95,7 +95,7 @@ Item {
             Label { text: qsTr("Range:"); height: rangeCombo.height; verticalAlignment: Text.AlignVCenter }
             ComboBox {
                 id: rangeCombo
-                model: ["1h", "6h", "24h", "48h", "7d", "30d", "all"]
+                model: ["1h", "6h", "12h", "24h", "48h", "7d", "30d", "all"]
                 currentIndex: 0
                 onActivated: page.reload()
             }

@@ -25,6 +25,27 @@ Item {
     onWidthChanged: canvas.requestPaint()
     onHeightChanged: canvas.requestPaint()
 
+    // Round the axis outwards to multiples of a "nice" step (1, 2, 2.5 or 5
+    // times a power of ten), aiming for about 4-5 intervals. Because the
+    // limits are multiples of the step, zero is a tick whenever it is in range.
+    function niceAxis(lo, hi) {
+        const raw = (hi - lo) / 4
+        const mag = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10))
+        let step = 10 * mag
+        for (const m of [1, 2, 2.5, 5]) {
+            if (raw <= m * mag + 1e-12) { step = m * mag; break }
+        }
+        let decimals = 0
+        while (decimals < 8 && Math.abs(step * Math.pow(10, decimals)
+                - Math.round(step * Math.pow(10, decimals))) > 1e-9) decimals++
+        return {
+            lo: Math.floor(lo / step + 1e-9) * step,
+            hi: Math.ceil(hi / step - 1e-9) * step,
+            step: step,
+            decimals: decimals
+        }
+    }
+
     function pad2(n) { return (n < 10 ? "0" : "") + n }
 
     Canvas {
@@ -61,28 +82,34 @@ Item {
                 return
             }
             if (hi - lo < 1e-9) { lo -= 1; hi += 1 }
-            const pad = (hi - lo) * 0.08
-            lo -= pad
-            hi += pad
+            // Include zero when the data is a sizeable fraction of the way to it
+            // (current/power sit near 0; voltage near 4 V would just flatten).
+            if (lo > 0 && lo <= hi * 0.5) lo = 0
+            else if (hi < 0 && hi >= lo * 0.5) hi = 0
+            const axis = root.niceAxis(lo, hi)
+            lo = axis.lo
+            hi = axis.hi
 
             const span = Math.max(1, root.maxTime - root.minTime)
             const xFor = t => root.marginLeft + (t - root.minTime) / span * plotW
             const yFor = v => top + (1 - (v - lo) / (hi - lo)) * plotH
 
-            // grid + y labels
+            // grid + y labels, one per round step (0.25, 0.5, 0.75 ...)
             ctx.strokeStyle = "#3a3a3a"
             ctx.lineWidth = 1
             ctx.fillStyle = "#aaaaaa"
             ctx.textAlign = "right"
             ctx.textBaseline = "middle"
-            for (let i = 0; i <= 4; ++i) {
-                const v = lo + (hi - lo) * i / 4
+            const n = Math.round((hi - lo) / axis.step)
+            for (let i = 0; i <= n; ++i) {
+                const v = axis.step * Math.round(lo / axis.step + i)
                 const y = Math.round(yFor(v)) + 0.5
                 ctx.beginPath()
                 ctx.moveTo(root.marginLeft, y)
                 ctx.lineTo(root.marginLeft + plotW, y)
                 ctx.stroke()
-                ctx.fillText(v.toPrecision(4), root.marginLeft - 6, y)
+                ctx.fillText(Math.abs(v) < axis.step * 1e-6 ? "0" : v.toFixed(axis.decimals),
+                             root.marginLeft - 6, y)
             }
 
             // x labels
