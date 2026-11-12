@@ -5,6 +5,7 @@
 
 #include "komaro/core/ChartController.h"
 #include "komaro/core/ConnectionManager.h"
+#include "komaro/core/PowerController.h"
 
 int main(int argc, char *argv[])
 {
@@ -42,6 +43,9 @@ int main(int argc, char *argv[])
 
     auto *chartController = new komaro::core::ChartController(&app);
     engine.rootContext()->setContextProperty("chartController", chartController);
+
+    auto *powerController = new komaro::core::PowerController(&app);
+    engine.rootContext()->setContextProperty("powerController", powerController);
 
     // __DATE__/__TIME__ reflect when this translation unit was last compiled,
     // not necessarily the whole app - fine for an About-dialog build stamp,

@@ -58,7 +58,10 @@ ApplicationWindow {
         interval: autoRefreshIntervalSpin.value * 60000
         running: autoRefreshSwitch.checked && connectionManager.currentHost.length > 0
         repeat: true
-        onTriggered: reloadChart()
+        onTriggered: {
+            reloadChart()
+            powerPage.reload()
+        }
     }
 
     menuBar: MenuBar {
@@ -83,8 +86,17 @@ ApplicationWindow {
         }
     }
 
-    ColumnLayout {
+    header: TabBar {
+        id: pageTabs
+        TabButton { text: qsTr("Environment") }
+        TabButton { text: qsTr("Power") }
+    }
+
+    StackLayout {
         anchors.fill: parent
+        currentIndex: pageTabs.currentIndex
+
+    ColumnLayout {
         spacing: 0
 
         RowLayout {
@@ -180,6 +192,12 @@ ApplicationWindow {
                 visible: text.length > 0
             }
         }
+    }
+
+    PowerPage {
+        id: powerPage
+        host: connectionManager.currentHost
+    }
     }
 
     Dialog {
