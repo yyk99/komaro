@@ -45,6 +45,7 @@ ApplicationWindow {
         property alias autoRefreshEnabled: autoRefreshSwitch.checked
         property alias autoRefreshIntervalMin: autoRefreshIntervalSpin.value
         property alias autoConnect: autoConnectSwitch.checked
+        property alias currentPage: pageTabs.currentIndex
     }
 
     Component.onCompleted: {
@@ -58,7 +59,10 @@ ApplicationWindow {
         interval: autoRefreshIntervalSpin.value * 60000
         running: autoRefreshSwitch.checked && connectionManager.currentHost.length > 0
         repeat: true
-        onTriggered: reloadChart()
+        onTriggered: {
+            reloadChart()
+            powerPage.reload()
+        }
     }
 
     menuBar: MenuBar {
@@ -83,8 +87,17 @@ ApplicationWindow {
         }
     }
 
-    ColumnLayout {
+    header: TabBar {
+        id: pageTabs
+        TabButton { text: qsTr("Environment") }
+        TabButton { text: qsTr("Power") }
+    }
+
+    StackLayout {
         anchors.fill: parent
+        currentIndex: pageTabs.currentIndex
+
+    ColumnLayout {
         spacing: 0
 
         RowLayout {
@@ -111,8 +124,8 @@ ApplicationWindow {
             Label { text: qsTr("Range:") }
             ComboBox {
                 id: timeRangeCombo
-                model: ["1h", "6h", "24h", "48h", "7d", "30d", "all"]
-                currentIndex: 4
+                model: ["1h", "6h", "12h", "24h", "48h", "7d", "30d", "all"]
+                currentIndex: 5
                 // While zoomed, show "Zoomed" instead of the current preset
                 // rather than faking an extra model entry - currentIndex
                 // (persisted via Settings) stays untouched either way.
@@ -180,6 +193,12 @@ ApplicationWindow {
                 visible: text.length > 0
             }
         }
+    }
+
+    PowerPage {
+        id: powerPage
+        host: connectionManager.currentHost
+    }
     }
 
     Dialog {

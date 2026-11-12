@@ -36,6 +36,12 @@ A Qt Quick `ApplicationWindow` with `File`/`Help` menus and a chart below the me
 - The sensor picker (`core/qml/MultiMeasurementSelect.qml`, also shared) can select several
   measurements at once. Each is overlaid as its own temperature/humidity line pair, distinguished
   by dash style and marker shape. This mirrors `nano/plot_multi_sensor.py`.
+- A tab bar switches between two pages: **Environment** (the above) and **Power**. The Power page
+  (`core/qml/PowerPage.qml`, backed by `core/`'s `PowerController`) plots INA219 readings from the
+  `ina219` database on the connected host, mirroring `ina219_plot.py` from the Arduino sketches:
+  stacked voltage/current/power/shunt panels (`core/qml/PanelChart.qml`) for one `sensor` tag. Its
+  own sensor, value, range and smoothing controls are persisted under `[power]`. Desktop only so
+  far; the mobile shell does not have it yet.
 
 ### Mobile (`mobile/`)
 

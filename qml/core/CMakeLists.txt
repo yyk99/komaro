@@ -23,6 +23,7 @@ add_library(komaro_core STATIC
     include/komaro/core/RecentServers.h
     include/komaro/core/ConnectionManager.h
     include/komaro/core/ChartController.h
+    include/komaro/core/PowerController.h
     include/komaro/core/MovingAverage.h
     include/komaro/core/SensorPoint.h
     src/InfluxResponseParser.cpp
@@ -30,6 +31,7 @@ add_library(komaro_core STATIC
     src/RecentServers.cpp
     src/ConnectionManager.cpp
     src/ChartController.cpp
+    src/PowerController.cpp
     src/MovingAverage.cpp
 )
 
@@ -63,6 +65,8 @@ qt_add_qml_module(komaro_core_qml
         qml/AppActions.qml
         qml/SensorChart.qml
         qml/MultiMeasurementSelect.qml
+        qml/PanelChart.qml
+        qml/PowerPage.qml
 )
 
 target_link_libraries(komaro_core_qml PUBLIC
@@ -82,6 +86,7 @@ if(BUILD_TESTS)
         tests/InfluxDbClientTest.cpp
         tests/MovingAverageTest.cpp
         tests/ChartControllerTest.cpp
+        tests/PowerControllerTest.cpp
     )
 
     target_link_libraries(komaro_core_tests PRIVATE
