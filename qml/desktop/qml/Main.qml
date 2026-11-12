@@ -45,6 +45,7 @@ ApplicationWindow {
         property alias autoRefreshEnabled: autoRefreshSwitch.checked
         property alias autoRefreshIntervalMin: autoRefreshIntervalSpin.value
         property alias autoConnect: autoConnectSwitch.checked
+        property alias currentPage: pageTabs.currentIndex
     }
 
     Component.onCompleted: {
