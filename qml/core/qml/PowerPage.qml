@@ -18,6 +18,11 @@ Item {
         power: qsTr("Power"), shunt: qsTr("Shunt")
     })
 
+    // Same palette as the komaro-digest touchscreen app's power page.
+    readonly property var valueColors: ({
+        voltage: "#FFD040", current: "#40FF80", power: "#FF8060", shunt: "#60B0FF"
+    })
+
     property var selectedValues: ["voltage", "current", "power"]
 
     // Mouse interaction, as on the Environment page: tap toggles a vertical
@@ -221,6 +226,7 @@ Item {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         title: modelData.title
+                        color: page.valueColors[modelData.key]
                         unit: modelData.unit
                         series: modelData.series
                         minTime: page.range[0]

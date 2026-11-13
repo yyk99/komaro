@@ -21,11 +21,15 @@ Item {
     property bool pendingActive: false
     property real pendingTime: 0
 
-    readonly property var lineColors: ["#e06666", "#6fa8dc", "#93c47d", "#f6b26b"]
+    // Main line color; a second line in the same panel (e.g. load_v next to
+    // bus_v) is drawn in a darker shade of it.
+    property color color: "#e06666"
+    readonly property var lineColors: [color, Qt.darker(color, 1.6)]
     readonly property int marginLeft: 64
     readonly property int marginRight: 16
 
     onSeriesChanged: canvas.requestPaint()
+    onColorChanged: canvas.requestPaint()
     onMinTimeChanged: canvas.requestPaint()
     onMaxTimeChanged: canvas.requestPaint()
     onWidthChanged: canvas.requestPaint()
