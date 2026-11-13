@@ -40,8 +40,10 @@ A Qt Quick `ApplicationWindow` with `File`/`Help` menus and a chart below the me
   (`core/qml/PowerPage.qml`, backed by `core/`'s `PowerController`) plots INA219 readings from the
   `ina219` database on the connected host, mirroring `ina219_plot.py` from the Arduino sketches:
   stacked voltage/current/power/shunt panels (`core/qml/PanelChart.qml`) for one `sensor` tag. Its
-  own sensor, value, range and smoothing controls are persisted under `[power]`. Desktop only so
-  far; the mobile shell does not have it yet.
+  own sensor, value, range and smoothing controls are persisted under `[power]`. Like the chart
+  above, it has a hairline (tap) and zoom (double-tap twice). Plot lines use the komaro-digest
+  power page's colors (voltage yellow, current green, power orange, shunt blue). The mobile
+  shell has the same two tabs.
 
 ### Mobile (`mobile/`)
 
