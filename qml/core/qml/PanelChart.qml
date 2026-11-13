@@ -3,8 +3,10 @@ import QtQuick
 // One single-axis line panel: `series` is a list of {field, points:[{time,
 // value}]} (a PowerController panel's "series"). Several panels stacked in
 // PowerPage share minTime/maxTime so their x axes line up. Deliberately
-// simpler than SensorChart (no zoom/hairline): it is the stacked-panel
-// counterpart of ina219_plot.py's subplots.
+// simpler than SensorChart: it is the stacked-panel counterpart of
+// ina219_plot.py's subplots. Hairline / zoom-corner markers are drawn from
+// times the page owns (PowerPage handles the mouse, since one gesture spans
+// every panel).
 Item {
     id: root
 
@@ -14,6 +16,10 @@ Item {
     property real minTime: 0
     property real maxTime: 1
     property bool showTimeAxis: true
+    property bool hairlineActive: false
+    property real hairlineTime: 0
+    property bool pendingActive: false
+    property real pendingTime: 0
 
     readonly property var lineColors: ["#e06666", "#6fa8dc", "#93c47d", "#f6b26b"]
     readonly property int marginLeft: 64
@@ -24,6 +30,10 @@ Item {
     onMaxTimeChanged: canvas.requestPaint()
     onWidthChanged: canvas.requestPaint()
     onHeightChanged: canvas.requestPaint()
+    onHairlineActiveChanged: canvas.requestPaint()
+    onHairlineTimeChanged: canvas.requestPaint()
+    onPendingActiveChanged: canvas.requestPaint()
+    onPendingTimeChanged: canvas.requestPaint()
 
     // Round the axis outwards to multiples of a "nice" step (1, 2, 2.5 or 5
     // times a power of ten), aiming for about 4-5 intervals. Because the
@@ -143,6 +153,29 @@ Item {
                 ctx.stroke()
             })
             ctx.restore()
+
+            // Hairline (same grey as the grid) and the yellow dashed first
+            // zoom corner, as on the Environment page.
+            if (root.hairlineActive) {
+                const x = xFor(root.hairlineTime)
+                ctx.strokeStyle = "#6a6a6a"
+                ctx.lineWidth = 1
+                ctx.beginPath()
+                ctx.moveTo(x, top)
+                ctx.lineTo(x, top + plotH)
+                ctx.stroke()
+            }
+            if (root.pendingActive) {
+                const x = xFor(root.pendingTime)
+                ctx.strokeStyle = "#e0c040"
+                ctx.lineWidth = 1
+                ctx.setLineDash([2, 3])
+                ctx.beginPath()
+                ctx.moveTo(x, top)
+                ctx.lineTo(x, top + plotH)
+                ctx.stroke()
+                ctx.setLineDash([])
+            }
 
             // legend, only when a panel has more than one line
             if (root.series.length > 1) {
