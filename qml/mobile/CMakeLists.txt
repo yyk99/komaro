@@ -46,6 +46,13 @@ add_custom_target(touch
 # See core/CMakeLists.txt for why QTP0004 is set explicitly.
 qt_policy(SET QTP0004 NEW)
 
+# Android deployment-settings properties (QT_ANDROID_*) may contain generator
+# expressions that must evaluate to valid JSON strings; unset, Qt 6.8 emits a
+# QTP0002 dev warning on every configure. Ours are plain strings/paths.
+if(ANDROID)
+    qt_policy(SET QTP0002 NEW)
+endif()
+
 qt_add_qml_module(komaro_qml_mobile
     URI KomaroMobile
     VERSION 1.0
