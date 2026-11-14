@@ -63,6 +63,7 @@ ApplicationWindow {
         property alias autoRefreshEnabled: autoRefreshSwitch.checked
         property alias autoRefreshIntervalMin: autoRefreshIntervalSpin.value
         property alias autoConnect: autoConnectSwitch.checked
+        property alias currentPage: pageTabs.currentIndex
     }
 
     Component.onCompleted: {
@@ -76,7 +77,10 @@ ApplicationWindow {
         interval: autoRefreshIntervalSpin.value * 60000
         running: autoRefreshSwitch.checked && connectionManager.currentHost.length > 0
         repeat: true
-        onTriggered: reloadChart()
+        onTriggered: {
+            reloadChart()
+            powerPage.reload()
+        }
     }
 
     header: ToolBar {
@@ -186,6 +190,21 @@ ApplicationWindow {
         anchors.fill: parent
         spacing: 0
 
+        TabBar {
+            id: pageTabs
+            Layout.fillWidth: true
+            TabButton { text: qsTr("Environment") }
+            TabButton { text: qsTr("Power") }
+        }
+
+        StackLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            currentIndex: pageTabs.currentIndex
+
+    ColumnLayout {
+        spacing: 0
+
         ColumnLayout {
             Layout.fillWidth: true
             Layout.margins: 8
@@ -287,6 +306,13 @@ ApplicationWindow {
                 color: "white"
                 visible: text.length > 0
             }
+        }
+    }
+
+    PowerPage {
+        id: powerPage
+        host: connectionManager.currentHost
+    }
         }
     }
 
