@@ -20,7 +20,15 @@ ApplicationWindow {
         onConnectRequested: connectDialog.open()
         onAboutRequested: aboutDialog.open()
         onSettingsRequested: settingsDialog.open()
+        onIntegralRequested: powerPage.showIntegral()
         onHelpRequested: helpDialog.open()
+    }
+
+    // Integral needs a loaded Power page (host connected, data present).
+    Binding {
+        target: appActions.integralAction
+        property: "enabled"
+        value: powerPage.canIntegral
     }
 
     // Inline data-URI icons (link/sliders/info/logout/question-mark) since
@@ -122,6 +130,16 @@ ApplicationWindow {
                 onClicked: {
                     drawer.close()
                     appActions.connectAction.trigger()
+                }
+            }
+            ItemDelegate {
+                text: appActions.integralAction.text
+                enabled: appActions.integralAction.enabled
+                Layout.fillWidth: true
+                Layout.preferredHeight: 40
+                onClicked: {
+                    drawer.close()
+                    appActions.integralAction.trigger()
                 }
             }
             ItemDelegate {

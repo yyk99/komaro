@@ -50,6 +50,47 @@ TEST(PowerControllerTest, ParsePanelsThrowsOnInfluxError)
                  std::runtime_error);
 }
 
+TEST(PowerControllerTest, IntegralQueryInclusiveUtcRange)
+{
+    const QString q = PowerController::buildIntegralQuery(QStringLiteral("desk"), 0, 3600000);
+    EXPECT_TRUE(q.contains(QStringLiteral("time >= '1970-01-01T00:00:00.000Z'")));
+    EXPECT_TRUE(q.contains(QStringLiteral("time <= '1970-01-01T01:00:00.000Z'")));
+    EXPECT_TRUE(q.contains(QStringLiteral("\"sensor\" = 'desk'")));
+}
+
+TEST(PowerControllerTest, IntegrateConstantLoadOneHour)
+{
+    // 100 mA / 500 mW, a sample every 30 min for an hour (times in epoch ms).
+    const QByteArray json = R"({"results":[{"series":[{"name":"ina219",
+        "columns":["time","current_ma","power_mw"],
+        "values":[[0,100,500],[1800000,100,500],[3600000,100,500]]}]}]})";
+    const QVariantMap r = PowerController::integrateResponse(json, 3600);
+    EXPECT_NEAR(r["mah"].toDouble(), 100.0, 1e-9);
+    EXPECT_NEAR(r["wh"].toDouble(), 0.5, 1e-9);
+    EXPECT_NEAR(r["coveredSec"].toDouble(), 3600.0, 1e-9);
+    EXPECT_EQ(r["gapCount"].toInt(), 0);
+    EXPECT_EQ(r["samples"].toInt(), 3);
+}
+
+TEST(PowerControllerTest, IntegrateSkipsGapsAndNulls)
+{
+    const QByteArray json = R"({"results":[{"series":[{"name":"ina219",
+        "columns":["time","current_ma","power_mw"],
+        "values":[[0,100,500],[60000,100,500],[3660000,100,500],[3720000,100,500],
+                  [3780000,null,null],[3840000,100,500],[3900000,100,500]]}]}]})";
+    const QVariantMap r = PowerController::integrateResponse(json, 300);
+    EXPECT_EQ(r["gapCount"].toInt(), 1);
+    EXPECT_NEAR(r["gapSec"].toDouble(), 3600.0, 1e-9);
+    EXPECT_NEAR(r["coveredSec"].toDouble(), 60.0 + 60.0 + 60.0, 1e-9); // null row breaks the chain
+}
+
+TEST(PowerControllerTest, IntegrateEmptyIsZero)
+{
+    const QVariantMap r = PowerController::integrateResponse(R"({"results":[{}]})", 300);
+    EXPECT_EQ(r["samples"].toInt(), 0);
+    EXPECT_DOUBLE_EQ(r["mah"].toDouble(), 0.0);
+}
+
 TEST(PowerControllerTest, ParseTagValuesSorted)
 {
     const QByteArray json = R"({"results":[{"series":[{"name":"ina219","columns":["key","value"],

@@ -16,7 +16,15 @@ ApplicationWindow {
         onConnectRequested: connectDialog.open()
         onAboutRequested: aboutDialog.open()
         onSettingsRequested: settingsDialog.open()
+        onIntegralRequested: powerPage.showIntegral()
         onHelpRequested: helpDialog.open()
+    }
+
+    // Integral needs a loaded Power page (host connected, data present).
+    Binding {
+        target: appActions.integralAction
+        property: "enabled"
+        value: powerPage.canIntegral
     }
 
     // Fixed temperature range bounds, always stored in Celsius (matching
@@ -69,6 +77,7 @@ ApplicationWindow {
         Menu {
             title: qsTr("&File")
             MenuItem { action: appActions.connectAction }
+            MenuItem { action: appActions.integralAction }
             MenuItem { action: appActions.settingsAction }
             MenuSeparator {}
             MenuItem { action: appActions.exitAction }
