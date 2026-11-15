@@ -28,7 +28,7 @@ QtObject {
     // Consumed charge/energy over the Power page's displayed period; the
     // shell decides when it is enabled and calls PowerPage.showIntegral().
     readonly property Action integralAction: Action {
-        text: qsTr("&Integral...")
+        text: qsTr("&Power Usage...")
         onTriggered: root.integralRequested()
     }
 

@@ -172,7 +172,7 @@ Item {
         anchors.centerIn: parent
         width: Math.min(420, parent ? parent.width - 32 : 420)
         modal: true
-        title: qsTr("Integral")
+        title: qsTr("Power Usage")
         standardButtons: Dialog.Ok
 
         readonly property var r: powerController.integral
