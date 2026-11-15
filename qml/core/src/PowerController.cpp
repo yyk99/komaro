@@ -5,9 +5,11 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QNetworkReply>
+#include <QTimeZone>
 #include <QUrl>
 #include <QUrlQuery>
 #include <QVariantMap>
+#include <cmath>
 #include <stdexcept>
 #include <vector>
 
@@ -203,7 +205,7 @@ QStringList PowerController::parseTagValues(const QByteArray &json)
     return out;
 }
 
-QNetworkReply *PowerController::get(const QString &host, quint16 port, const QString &influxQl)
+QNetworkReply *PowerController::get(const QString &host, quint16 port, const QString &influxQl, bool epochMs)
 {
     QUrl url;
     url.setScheme(QStringLiteral("http"));
@@ -213,6 +215,9 @@ QNetworkReply *PowerController::get(const QString &host, quint16 port, const QSt
     QUrlQuery urlQuery;
     urlQuery.addQueryItem(QStringLiteral("db"), QLatin1String(kDatabase));
     urlQuery.addQueryItem(QStringLiteral("q"), influxQl);
+    if (epochMs) {
+        urlQuery.addQueryItem(QStringLiteral("epoch"), QStringLiteral("ms"));
+    }
     url.setQuery(urlQuery);
     return m_manager.get(QNetworkRequest(url));
 }
@@ -294,6 +299,126 @@ void PowerController::load(const QString &host, const QString &sensor, const QSt
         setStatus(total > 0 ? tr("%1 points").arg(total) : tr("No data for sensor %1.").arg(trimmedSensor));
         emit panelsChanged();
     });
+}
+
+QString PowerController::buildIntegralQuery(const QString &sensor, qint64 startMs, qint64 endMs)
+{
+    // Inclusive end: the displayed period ends at its last sample.
+    const auto iso = [](qint64 ms) {
+        // Explicit format: ISODateWithMs's UTC suffix differs across Qt versions.
+        return QDateTime::fromMSecsSinceEpoch(ms, QTimeZone::utc())
+            .toString(QStringLiteral("yyyy-MM-dd'T'HH:mm:ss.zzz'Z'"));
+    };
+    return QStringLiteral("SELECT \"current_ma\", \"power_mw\" FROM %1 WHERE \"sensor\" = %2 "
+                          "AND time >= '%3' AND time <= '%4' ORDER BY time")
+        .arg(quoteIdent(QLatin1String(kMeasurement)), quoteString(sensor), iso(startMs), iso(endMs));
+}
+
+QVariantMap PowerController::integrateResponse(const QByteArray &json, int maxGapSec)
+{
+    const QJsonObject series = firstSeries(json);
+    const QJsonArray columns = series.value("columns").toArray();
+    int timeCol = -1, currentCol = -1, powerCol = -1;
+    for (int i = 0; i < columns.size(); ++i) {
+        const QString name = columns.at(i).toString();
+        if (name == QLatin1String("time")) timeCol = i;
+        else if (name == QLatin1String("current_ma")) currentCol = i;
+        else if (name == QLatin1String("power_mw")) powerCol = i;
+    }
+    const QJsonArray rows = series.value("values").toArray();
+
+    double mas = 0.0, mws = 0.0, covered = 0.0, gapSec = 0.0; // mA*s, mW*s, seconds
+    int gaps = 0;
+    bool havePrev = false;
+    double prevT = 0, prevI = 0, prevP = 0;
+    for (const QJsonValue &rowValue : rows) {
+        const QJsonArray row = rowValue.toArray();
+        if (timeCol < 0 || currentCol < 0 || powerCol < 0 || row.at(currentCol).isNull()
+            || row.at(powerCol).isNull()) {
+            havePrev = false; // a hole: do not bridge it
+            continue;
+        }
+        const double t = row.at(timeCol).toDouble() / 1000.0;
+        const double i = row.at(currentCol).toDouble();
+        const double p = row.at(powerCol).toDouble();
+        if (havePrev) {
+            const double dt = t - prevT;
+            if (dt > maxGapSec) {
+                ++gaps;
+                gapSec += dt;
+            } else if (dt > 0) {
+                mas += (i + prevI) / 2.0 * dt;
+                mws += (p + prevP) / 2.0 * dt;
+                covered += dt;
+            }
+        }
+        havePrev = true;
+        prevT = t;
+        prevI = i;
+        prevP = p;
+    }
+
+    QVariantMap out;
+    out.insert(QStringLiteral("mah"), mas / 3600.0);
+    out.insert(QStringLiteral("wh"), mws / 3.6e6);
+    out.insert(QStringLiteral("coveredSec"), covered);
+    out.insert(QStringLiteral("gapCount"), gaps);
+    out.insert(QStringLiteral("gapSec"), gapSec);
+    out.insert(QStringLiteral("samples"), static_cast<int>(rows.size()));
+    return out;
+}
+
+void PowerController::computeIntegral(const QString &host, const QString &sensor, double startMs, double endMs,
+                                       int maxGapSec, quint16 port)
+{
+    QVariantMap pending;
+    pending.insert(QStringLiteral("sensor"), sensor.trimmed());
+    pending.insert(QStringLiteral("startMs"), startMs);
+    pending.insert(QStringLiteral("endMs"), endMs);
+
+    const QString trimmedHost = host.trimmed();
+    if (trimmedHost.isEmpty() || sensor.trimmed().isEmpty() || !(endMs > startMs)) {
+        pending.insert(QStringLiteral("state"), QStringLiteral("error"));
+        pending.insert(QStringLiteral("error"), tr("Nothing to integrate: no sensor, host or period."));
+        setIntegral(pending);
+        return;
+    }
+    pending.insert(QStringLiteral("state"), QStringLiteral("loading"));
+    setIntegral(pending);
+
+    const int id = ++m_integralId;
+    QNetworkReply *reply = get(trimmedHost, port,
+                               // +-1 ms: the displayed edges are timestamps parsed to ms, which may
+                               // have been rounded past the sample they came from.
+                               buildIntegralQuery(sensor.trimmed(), static_cast<qint64>(std::floor(startMs)) - 1,
+                                                  static_cast<qint64>(std::ceil(endMs)) + 1),
+                               true);
+    connect(reply, &QNetworkReply::finished, this, [this, reply, id, pending, maxGapSec] {
+        reply->deleteLater();
+        if (id != m_integralId) {
+            return;
+        }
+        QVariantMap result = pending;
+        if (reply->error() != QNetworkReply::NoError) {
+            result.insert(QStringLiteral("state"), QStringLiteral("error"));
+            result.insert(QStringLiteral("error"), reply->errorString());
+        } else {
+            try {
+                result.insert(integrateResponse(reply->readAll(), maxGapSec));
+                result.insert(QStringLiteral("state"), QStringLiteral("done"));
+            } catch (const std::exception &e) {
+                result.insert(QStringLiteral("state"), QStringLiteral("error"));
+                result.insert(QStringLiteral("error"), QString::fromStdString(e.what()));
+            }
+        }
+        setIntegral(result);
+    });
+}
+
+void PowerController::setIntegral(const QVariantMap &integral)
+{
+    m_integral = integral;
+    emit integralChanged();
 }
 
 void PowerController::setStatus(const QString &status)

@@ -117,6 +117,28 @@ Item {
         }
     }
 
+    // Consumed charge/energy of the selected sensor over the displayed period
+    // (the zoom window if zoomed, else the loaded data's extent), computed by
+    // PowerController from the raw samples - same as ina219/ina219_energy.py.
+    readonly property bool canIntegral: host.length > 0 && powerController.panels.length > 0
+
+    function showIntegral() {
+        if (canIntegral) {
+            powerController.computeIntegral(host, sensorCombo.editText, range[0], range[1])
+        }
+        integralDialog.open()
+    }
+
+    function formatDateTime(ms) {
+        return Qt.formatDateTime(new Date(ms), "yyyy-MM-dd hh:mm:ss")
+    }
+
+    function formatDuration(sec) {
+        sec = Math.round(sec)
+        return Math.floor(sec / 3600) + "h " + pad2(Math.floor(sec % 3600 / 60)) + "m "
+                + pad2(sec % 60) + "s"
+    }
+
     function reload() {
         if (host.length === 0) return
         powerController.loadSensors(host)
@@ -140,6 +162,90 @@ Item {
             }
             if (powerController.panels.length === 0) {
                 page.reload()
+            }
+        }
+    }
+
+    Dialog {
+        id: integralDialog
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: Math.min(420, parent ? parent.width - 32 : 420)
+        modal: true
+        title: qsTr("Power Usage")
+        standardButtons: Dialog.Ok
+
+        readonly property var r: powerController.integral
+        readonly property bool done: page.canIntegral && r.state === "done"
+
+        ColumnLayout {
+            width: parent.width
+            spacing: 8
+
+            Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                visible: !page.canIntegral
+                text: qsTr("No Power data loaded: connect and pick a sensor first.")
+            }
+            Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                visible: page.canIntegral && integralDialog.r.state === "loading"
+                text: qsTr("Computing...")
+            }
+            Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                visible: page.canIntegral && integralDialog.r.state === "error"
+                text: qsTr("Error: %1").arg(integralDialog.r.error)
+            }
+
+            GridLayout {
+                visible: integralDialog.done
+                columns: 2
+                columnSpacing: 16
+                rowSpacing: 4
+
+                Label { text: qsTr("Sensor") }
+                Label { text: integralDialog.done ? integralDialog.r.sensor : "" }
+                Label { text: qsTr("From") }
+                Label { text: integralDialog.done ? page.formatDateTime(integralDialog.r.startMs) : "" }
+                Label { text: qsTr("To") }
+                Label { text: integralDialog.done ? page.formatDateTime(integralDialog.r.endMs) : "" }
+                Label { text: qsTr("Samples") }
+                Label {
+                    text: !integralDialog.done ? "" : qsTr("%1, integrated over %2 (%3%)")
+                            .arg(integralDialog.r.samples)
+                            .arg(page.formatDuration(integralDialog.r.coveredSec))
+                            .arg((100 * integralDialog.r.coveredSec
+                                  / Math.max(1, (integralDialog.r.endMs - integralDialog.r.startMs) / 1000)).toFixed(1))
+                }
+                Label {
+                    text: qsTr("Gaps")
+                    visible: integralDialog.done && integralDialog.r.gapCount > 0
+                }
+                Label {
+                    visible: integralDialog.done && integralDialog.r.gapCount > 0
+                    text: !visible ? "" : qsTr("%1 skipped (%2)").arg(integralDialog.r.gapCount)
+                            .arg(page.formatDuration(integralDialog.r.gapSec))
+                }
+                Label { text: qsTr("Charge"); font.bold: true }
+                Label {
+                    font.bold: true
+                    text: integralDialog.done ? integralDialog.r.mah.toFixed(3) + " mAh" : ""
+                }
+                Label { text: qsTr("Energy"); font.bold: true }
+                Label {
+                    font.bold: true
+                    text: integralDialog.done ? integralDialog.r.wh.toFixed(5) + " Wh" : ""
+                }
+                Label { text: qsTr("Average") }
+                Label {
+                    text: !integralDialog.done || integralDialog.r.coveredSec <= 0 ? ""
+                            : (integralDialog.r.mah * 3600 / integralDialog.r.coveredSec).toFixed(2) + " mA, "
+                              + (integralDialog.r.wh * 3.6e6 / integralDialog.r.coveredSec).toFixed(2) + " mW"
+                }
             }
         }
     }

@@ -20,7 +20,15 @@ ApplicationWindow {
         onConnectRequested: connectDialog.open()
         onAboutRequested: aboutDialog.open()
         onSettingsRequested: settingsDialog.open()
+        onIntegralRequested: powerPage.showIntegral()
         onHelpRequested: helpDialog.open()
+    }
+
+    // Integral needs a loaded Power page (host connected, data present).
+    Binding {
+        target: appActions.integralAction
+        property: "enabled"
+        value: powerPage.canIntegral
     }
 
     // Inline data-URI icons (link/sliders/info/logout/question-mark) since
@@ -30,6 +38,7 @@ ApplicationWindow {
     readonly property string aboutIconSource: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10' fill='none' stroke='white' stroke-width='2'/><circle cx='12' cy='7.5' r='1.3' fill='white'/><rect x='10.8' y='10.5' width='2.4' height='7' rx='1.2' fill='white'/></svg>"
     readonly property string helpIconSource: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10' fill='none' stroke='white' stroke-width='2'/><text x='12' y='17' text-anchor='middle' font-size='14' font-family='sans-serif' fill='white'>?</text></svg>"
     readonly property string settingsIconSource: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><line x1='4' y1='6' x2='20' y2='6' stroke='white' stroke-width='2' stroke-linecap='round'/><circle cx='9' cy='6' r='2' fill='white'/><line x1='4' y1='12' x2='20' y2='12' stroke='white' stroke-width='2' stroke-linecap='round'/><circle cx='15' cy='12' r='2' fill='white'/><line x1='4' y1='18' x2='20' y2='18' stroke='white' stroke-width='2' stroke-linecap='round'/><circle cx='9' cy='18' r='2' fill='white'/></svg>"
+    readonly property string powerIconSource: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M9 18h6M10 21h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>"
     // "Hamburger" menu icon - a literal U+2630 glyph looked wrong on Android
     // (the default font there doesn't reliably cover it), so this uses the
     // same inline-SVG approach as the drawer icons above instead of a font glyph.
@@ -122,6 +131,19 @@ ApplicationWindow {
                 onClicked: {
                     drawer.close()
                     appActions.connectAction.trigger()
+                }
+            }
+            ItemDelegate {
+                text: appActions.integralAction.text
+                icon.source: powerIconSource
+                icon.width: 20
+                icon.height: 20
+                enabled: appActions.integralAction.enabled
+                Layout.fillWidth: true
+                Layout.preferredHeight: 40
+                onClicked: {
+                    drawer.close()
+                    appActions.integralAction.trigger()
                 }
             }
             ItemDelegate {

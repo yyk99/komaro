@@ -8,9 +8,10 @@ QtObject {
     signal aboutRequested()
     signal settingsRequested()
     signal helpRequested()
+    signal integralRequested()
 
     readonly property Action connectAction: Action {
-        text: qsTr("&Connect...")
+        text: qsTr("&Connect")
         onTriggered: root.connectRequested()
     }
 
@@ -22,6 +23,13 @@ QtObject {
     readonly property Action helpAction: Action {
         text: qsTr("Help &Contents")
         onTriggered: root.helpRequested()
+    }
+
+    // Consumed charge/energy over the Power page's displayed period; the
+    // shell decides when it is enabled and calls PowerPage.showIntegral().
+    readonly property Action integralAction: Action {
+        text: qsTr("&Power Usage")
+        onTriggered: root.integralRequested()
     }
 
     readonly property Action settingsAction: Action {

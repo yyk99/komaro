@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.21)
 
 project(komaro-desktop LANGUAGES CXX)
 
+# Only log files that are actually copied, not "-- Up-to-date: ..." for every
+# unchanged file (the Qt deploy script otherwise prints one per bundled lib).
+set(CMAKE_INSTALL_MESSAGE LAZY)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
@@ -165,10 +169,26 @@ if(UNIX AND NOT APPLE)
     )
 endif()
 
+# file(INSTALL) as called by Qt's deploy scripts (qt6_deploy_runtime_dependencies,
+# qt6_deploy_qml_imports) takes no MESSAGE_LAZY option and ignores
+# CMAKE_INSTALL_MESSAGE, so it prints "-- Up-to-date: ..." for every bundled
+# library. Shadow file() in the install script so those calls get MESSAGE_LAZY;
+# every other file() subcommand is forwarded untouched.
+install(CODE [[
+macro(file)
+    if("${ARGV0}" STREQUAL "INSTALL")
+        _file(${ARGV} MESSAGE_LAZY)
+    else()
+        _file(${ARGV})
+    endif()
+endmacro()
+]])
+
 qt_generate_deploy_app_script(
     TARGET komaro-desktop
     OUTPUT_SCRIPT deploy_script
     NO_UNSUPPORTED_PLATFORM_ERROR
+    NO_TRANSLATIONS
 )
 install(SCRIPT ${deploy_script})
 

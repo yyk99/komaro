@@ -43,7 +43,10 @@ A Qt Quick `ApplicationWindow` with `File`/`Help` menus and a chart below the me
   own sensor, value, range and smoothing controls are persisted under `[power]`. Like the chart
   above, it has a hairline (tap) and zoom (double-tap twice). Plot lines use the komaro-digest
   power page's colors (voltage yellow, current green, power orange, shunt blue). The mobile
-  shell has the same two tabs.
+  shell has the same two tabs. **File → Power Usage**
+  (the drawer's Power Usage entry on mobile) shows
+  the consumed charge (mAh) and energy (Wh) of the selected sensor over the period the Power page
+  displays (the zoom window if zoomed, else the loaded data), like `ina219/ina219_energy.py`.
 
 ### Mobile (`mobile/`)
 
