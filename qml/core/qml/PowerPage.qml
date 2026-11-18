@@ -233,7 +233,11 @@ Item {
                 Label { text: qsTr("Charge"); font.bold: true }
                 Label {
                     font.bold: true
-                    text: integralDialog.done ? integralDialog.r.mah.toFixed(3) + " mAh" : ""
+                    text: integralDialog.done ? Math.abs(integralDialog.r.mah).toFixed(3) + " mAh" : ""
+                    // Shown as an absolute value; the colour carries the sign:
+                    // green = net charge flowing in (recharging), red = drain.
+                    color: !integralDialog.done || integralDialog.r.mah === 0 ? palette.windowText
+                           : integralDialog.r.mah < 0 ? "#2e9e4f" : "#d63b3b"
                 }
                 Label { text: qsTr("Energy"); font.bold: true }
                 Label {

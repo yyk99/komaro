@@ -403,7 +403,7 @@ ApplicationWindow {
                 Label {
                     Layout.fillWidth: true
                     wrapMode: Text.WordWrap
-                    text: qsTr("<b>Power Usage</b><br>Menu (☰) → Power Usage totals what the selected Power sensor consumed over the displayed period: the zoom window if zoomed, otherwise all loaded data. It shows the From/To times, sample count and time covered, any skipped gaps (holes in the data are not integrated), the charge in mAh, the energy in Wh, and the average current (mA) and power (mW). Charge, energy and averages are signed: a negative value means the battery was being recharged (net charge flowing in) over the period. Needs Power data loaded: connect and pick a sensor first.")
+                    text: qsTr("<b>Power Usage</b><br>Menu (☰) → Power Usage totals what the selected Power sensor consumed over the displayed period: the zoom window if zoomed, otherwise all loaded data. It shows the From/To times, sample count and time covered, any skipped gaps (holes in the data are not integrated), the charge in mAh, the energy in Wh, and the average current (mA) and power (mW). The charge is shown as an absolute value, coloured green if the battery was being recharged (net charge flowing in) over the period and red if it was drained; energy and the averages keep their sign (negative = recharging). Needs Power data loaded: connect and pick a sensor first.")
                 }
                 Label {
                     Layout.fillWidth: true
