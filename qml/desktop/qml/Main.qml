@@ -228,44 +228,65 @@ ApplicationWindow {
 
     Dialog {
         id: helpDialog
+        height: Math.min(implicitHeight, Overlay.overlay ? Overlay.overlay.height - 40 : implicitHeight)
         title: qsTr("Help")
         anchors.centerIn: parent
         modal: true
         standardButtons: Dialog.Ok
 
-        ColumnLayout {
-            width: 420
-            spacing: 12
+        ScrollView {
+            id: helpScroll
+            anchors.fill: parent
+            implicitWidth: 420 + 20
+            implicitHeight: helpColumn.implicitHeight
+            contentWidth: availableWidth
+            clip: true
 
-            Label {
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                text: qsTr("<b>Connect</b><br>File → Connect to enter an InfluxDB host. Recently used hosts are remembered.")
-            }
-            Label {
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                text: qsTr("<b>Sensors</b><br>Pick one or more measurements from the Sensors selector. Each selected sensor gets its own temperature/humidity line pair on the chart, distinguished by line style.")
-            }
-            Label {
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                text: qsTr("<b>Range / Smoothing / Units</b><br>Choose how far back to query, a moving-average smoothing window (in samples), and °C/°F.")
-            }
-            Label {
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                text: qsTr("<b>Settings</b><br>Fixed temperature/humidity axis ranges, connecting to the last server automatically on startup, and periodic auto-refresh are all here.")
-            }
-            Label {
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                text: qsTr("<b>Hairline</b><br>Tap the chart to show a vertical hairline with each sensor's value at that time in the status bar. Drag to move it. Tap again to hide it.")
-            }
-            Label {
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                text: qsTr("<b>Zoom</b><br>Double-click once to set the first corner of a temporary zoom window, then double-click again to set the second - the chart rescales to just that time range. Pick any preset from the Range dropdown to zoom back out.")
+            ColumnLayout {
+                id: helpColumn
+                width: helpScroll.availableWidth
+                spacing: 12
+
+                Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    text: qsTr("<b>Connect</b><br>File → Connect to enter an InfluxDB host. Recently used hosts are remembered.")
+                }
+                Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    text: qsTr("<b>Tabs</b><br>The Environment tab charts temperature/humidity; the Power tab charts the INA219 power monitor (voltage, current, power and shunt panels) with the same Range and Refresh controls.")
+                }
+                Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    text: qsTr("<b>Sensors</b><br>Pick one or more measurements from the Sensors selector. Each selected sensor gets its own temperature/humidity line pair on the chart, distinguished by line style.")
+                }
+                Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    text: qsTr("<b>Range / Smoothing / Units</b><br>Choose how far back to query, a moving-average smoothing window (in samples), and °C/°F.")
+                }
+                Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    text: qsTr("<b>Settings</b><br>Fixed temperature/humidity axis ranges, connecting to the last server automatically on startup, and periodic auto-refresh are all here.")
+                }
+                Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    text: qsTr("<b>Power Usage</b><br>File → Power Usage totals what the selected Power sensor consumed over the displayed period: the zoom window if zoomed, otherwise all loaded data. It shows the From/To times, sample count and time covered, any skipped gaps (holes in the data are not integrated), the charge in mAh, the energy in Wh, and the average current (mA) and power (mW). The charge is shown as an absolute value, coloured green if the battery was being recharged (net charge flowing in) over the period and red if it was drained; energy and the averages keep their sign (negative = recharging). Needs Power data loaded: connect and pick a sensor first.")
+                }
+                Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    text: qsTr("<b>Hairline</b><br>Click the chart to show a vertical hairline with each sensor's value at that time in the status bar. Drag to move it. Click again to hide it.")
+                }
+                Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    text: qsTr("<b>Zoom</b><br>Double-click once to set the first corner of a temporary zoom window, then double-click again to set the second - the chart rescales to just that time range. Pick any preset from the Range dropdown to zoom back out.")
+                }
             }
         }
     }
